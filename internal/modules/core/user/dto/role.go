@@ -1,0 +1,5 @@
+const (
+	ADMIN
+	USER
+	ANONYMOUS
+)
