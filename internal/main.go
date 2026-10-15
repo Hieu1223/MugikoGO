@@ -7,11 +7,11 @@ import (
 	deckroutes "mugiko/internal/modules/core/deck/api/routes"
 	log "mugiko/internal/modules/core/log"
 	lookuproutes "mugiko/internal/modules/core/lookup/api/routes"
-	mangaroutes "mugiko/internal/modules/media/manga/api/routes"
-	subtitleroutes "mugiko/internal/modules/media/subtitle/api/routes"
 	userroutes "mugiko/internal/modules/core/user/api/routes"
 	userhandlers "mugiko/internal/modules/core/user/api/routes/handlers"
 	user "mugiko/internal/modules/core/user/middleware"
+	mangaroutes "mugiko/internal/modules/media/manga/api/routes"
+	subtitleroutes "mugiko/internal/modules/media/subtitle/api/routes"
 	webnovelroutes "mugiko/internal/modules/media/webnovel/api/routes"
 	"net/http"
 

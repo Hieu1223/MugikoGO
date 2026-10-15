@@ -25,6 +25,7 @@ func RegisterSubtitleRoutes(mux *http.ServeMux, db *sql.DB) {
 
 	// Subtitle routes
 	mux.HandleFunc("GET /api/v1/subtitles", handler.SearchSubtitles)
+	mux.HandleFunc("POST /api/v1/subtitles", handler.CreateSubtitle)
 	mux.HandleFunc("GET /api/v1/subtitles/{subtitle_id}", handler.GetSubtitle)
 	mux.HandleFunc("GET /api/v1/subtitles/{subtitle_id}/segments", handler.GetSubtitleSegments)
 

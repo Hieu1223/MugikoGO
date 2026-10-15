@@ -433,12 +433,11 @@
         },
         "/api/v1/subtitles": {
             "post": {
+                "summary": "Create subtitle",
+                "description": "Create a new subtitle record for a video",
                 "tags": [
                     "subtitle"
                 ],
-                "summary": "Create Subtitle",
-                "description": "Create a new subtitle and start generation job.",
-                "operationId": "create_subtitle_api_v1_subtitles_post",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -451,7 +450,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Successful Response",
+                        "description": "Created",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -460,12 +459,22 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "400": {
+                        "description": "Bad Request",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -1944,40 +1953,98 @@
             }
         },
         "/api/v1/manga/providers": {
-            "post": {
+            "get": {
+                "summary": "List public manga providers",
+                "description": "Get paginated list of public manga providers",
                 "tags": [
                     "manga"
                 ],
-                "summary": "Create Provider",
-                "description": "Create a new manga provider.",
-                "operationId": "create_provider_api_v1_manga_providers_post",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "description": "Page number"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        },
+                        "description": "Items per page"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MangaProviderListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create manga provider",
+                "description": "Create a new manga provider",
+                "tags": [
+                    "manga"
+                ],
                 "requestBody": {
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/MangaProviderCreate"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "responses": {
                     "201": {
-                        "description": "Successful Response",
+                        "description": "Created",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MangaProviderResponse"
+                                    "$ref": "#/components/schemas/MangaProviderDTO"
                                 }
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "400": {
+                        "description": "Bad Request",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -1986,13 +2053,12 @@
             }
         },
         "/api/v1/manga/providers/{provider_id}": {
-            "patch": {
+            "get": {
+                "summary": "Get manga provider",
+                "description": "Get a manga provider by ID",
                 "tags": [
                     "manga"
                 ],
-                "summary": "Update Provider",
-                "description": "Update a provider (owner only).",
-                "operationId": "update_provider_api_v1_manga_providers__provider_id__patch",
                 "parameters": [
                     {
                         "name": "provider_id",
@@ -2000,8 +2066,57 @@
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "format": "uuid",
-                            "title": "Provider Id"
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MangaProviderDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update manga provider",
+                "description": "Update a manga provider (owner only)",
+                "tags": [
+                    "manga"
+                ],
+                "parameters": [
+                    {
+                        "name": "provider_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
@@ -2017,21 +2132,51 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Successful Response",
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MangaProviderResponse"
+                                    "$ref": "#/components/schemas/MangaProviderDTO"
                                 }
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "400": {
+                        "description": "Bad Request",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -2039,12 +2184,11 @@
                 }
             },
             "delete": {
+                "summary": "Delete manga provider",
+                "description": "Delete a manga provider (owner only)",
                 "tags": [
                     "manga"
                 ],
-                "summary": "Delete Provider",
-                "description": "Delete a provider (owner only).",
-                "operationId": "delete_provider_api_v1_manga_providers__provider_id__delete",
                 "parameters": [
                     {
                         "name": "provider_id",
@@ -2052,21 +2196,40 @@
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "format": "uuid",
-                            "title": "Provider Id"
+                            "format": "uuid"
                         }
                     }
                 ],
                 "responses": {
                     "204": {
-                        "description": "Successful Response"
+                        "description": "No Content"
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -2076,12 +2239,11 @@
         },
         "/api/v1/manga/providers/{provider_id}/subscribe": {
             "post": {
+                "summary": "Subscribe to manga provider",
+                "description": "Subscribe current user to a manga provider",
                 "tags": [
                     "manga"
                 ],
-                "summary": "Subscribe To Provider",
-                "description": "Subscribe to a provider.",
-                "operationId": "subscribe_to_provider_api_v1_manga_providers__provider_id__subscribe_post",
                 "parameters": [
                     {
                         "name": "provider_id",
@@ -2089,63 +2251,47 @@
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "format": "uuid",
-                            "title": "Provider Id"
+                            "format": "uuid"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Successful Response",
+                        "description": "Subscribed",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MangaSubscriptionResponse"
+                                    "$ref": "#/components/schemas/MangaSubscriptionDTO"
                                 }
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "400": {
+                        "description": "Bad Request",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "manga"
-                ],
-                "summary": "Unsubscribe From Provider",
-                "description": "Unsubscribe from a provider.",
-                "operationId": "unsubscribe_from_provider_api_v1_manga_providers__provider_id__subscribe_delete",
-                "parameters": [
-                    {
-                        "name": "provider_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid",
-                            "title": "Provider Id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Successful Response"
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -2155,23 +2301,46 @@
         },
         "/api/v1/manga/subscriptions": {
             "get": {
+                "summary": "List user's manga subscriptions",
+                "description": "Get paginated list of user's subscribed providers",
                 "tags": [
                     "manga"
                 ],
-                "summary": "List Subscriptions",
-                "description": "List current user's subscriptions.",
-                "operationId": "list_subscriptions_api_v1_manga_subscriptions_get",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Successful Response",
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "items": {
-                                        "$ref": "#/components/schemas/MangaSubscriptionResponse"
-                                    },
-                                    "type": "array",
-                                    "title": "Response List Subscriptions Api V1 Manga Subscriptions Get"
+                                    "$ref": "#/components/schemas/MangaProviderListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -2181,23 +2350,46 @@
         },
         "/api/v1/manga/providers/subscribable": {
             "get": {
+                "summary": "List subscribable manga providers",
+                "description": "Get providers the user can subscribe to (public + user's own)",
                 "tags": [
                     "manga"
                 ],
-                "summary": "List Subscribable Providers",
-                "description": "List providers the user can subscribe to.",
-                "operationId": "list_subscribable_providers_api_v1_manga_providers_subscribable_get",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Successful Response",
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "items": {
-                                        "$ref": "#/components/schemas/MangaProviderResponse"
-                                    },
-                                    "type": "array",
-                                    "title": "Response List Subscribable Providers Api V1 Manga Providers Subscribable Get"
+                                    "$ref": "#/components/schemas/MangaProviderListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -2206,81 +2398,41 @@
             }
         },
         "/api/v1/manga/history": {
-            "put": {
+            "get": {
+                "summary": "Get user's manga reading history",
+                "description": "Get paginated reading history for current user",
                 "tags": [
                     "manga"
                 ],
-                "summary": "Upsert History",
-                "description": "Upsert reading history entry.",
-                "operationId": "upsert_history_api_v1_manga_history_put",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/MangaHistoryEntry"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/MangaHistoryResponse"
-                                }
-                            }
+                "parameters": [
+                    {
+                        "name": "provider_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
                         }
                     },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "get": {
-                "tags": [
-                    "manga"
-                ],
-                "summary": "Get History",
-                "description": "Get reading history.",
-                "operationId": "get_history_api_v1_manga_history_get",
-                "parameters": [
                     {
                         "name": "page",
                         "in": "query",
-                        "required": false,
                         "schema": {
                             "type": "integer",
-                            "minimum": 1,
-                            "default": 1,
-                            "title": "Page"
+                            "default": 1
                         }
                     },
                     {
                         "name": "page_size",
                         "in": "query",
-                        "required": false,
                         "schema": {
                             "type": "integer",
-                            "maximum": 100,
-                            "minimum": 1,
-                            "default": 20,
-                            "title": "Page Size"
+                            "default": 20
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful Response",
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2289,12 +2441,12 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -2350,19 +2502,28 @@
         },
         "/api/v1/manga/settings": {
             "get": {
+                "summary": "Get user's manga settings",
+                "description": "Get manga module settings for current user",
                 "tags": [
                     "manga"
                 ],
-                "summary": "Get Settings",
-                "description": "Get user settings.",
-                "operationId": "get_settings_api_v1_manga_settings_get",
                 "responses": {
                     "200": {
-                        "description": "Successful Response",
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MangaUserSettingsResponse"
+                                    "$ref": "#/components/schemas/MangaUserSettingsDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -2370,415 +2531,48 @@
                 }
             },
             "put": {
+                "summary": "Update user's manga settings",
+                "description": "Update manga module settings for current user",
                 "tags": [
                     "manga"
                 ],
-                "summary": "Update Settings",
-                "description": "Update user settings.",
-                "operationId": "update_settings_api_v1_manga_settings_put",
                 "requestBody": {
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/MangaUserSettingsUpdate"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "responses": {
                     "200": {
-                        "description": "Successful Response",
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MangaUserSettingsResponse"
+                                    "$ref": "#/components/schemas/MangaUserSettingsDTO"
                                 }
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "400": {
+                        "description": "Bad Request",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/builtin-provider/info": {
-            "get": {
-                "tags": [
-                    "manga-builtin"
-                ],
-                "summary": "Get Info",
-                "description": "Get built-in provider info.",
-                "operationId": "get_info_api_v1_builtin_provider_info_get",
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BuiltinProviderInfo"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/builtin-provider/tags": {
-            "get": {
-                "tags": [
-                    "manga-builtin"
-                ],
-                "summary": "Get Tags",
-                "description": "Get supported tags.",
-                "operationId": "get_tags_api_v1_builtin_provider_tags_get",
-                "parameters": [
-                    {
-                        "name": "category",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "title": "Category"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "default": 1,
-                            "title": "Page"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "maximum": 200,
-                            "minimum": 1,
-                            "default": 50,
-                            "title": "Page Size"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BuiltinTagListResponse"
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/builtin-provider/chapters": {
-            "get": {
-                "tags": [
-                    "manga-builtin"
-                ],
-                "summary": "Get Chapters",
-                "description": "Get chapter list for a manga.",
-                "operationId": "get_chapters_api_v1_builtin_provider_chapters_get",
-                "parameters": [
-                    {
-                        "name": "manga_id",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid",
-                            "title": "Manga Id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BuiltinChapterListResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/builtin-provider/chapters/{chapter_id}": {
-            "get": {
-                "tags": [
-                    "manga-builtin"
-                ],
-                "summary": "Get Chapter",
-                "description": "Get chapter detail with pages.",
-                "operationId": "get_chapter_api_v1_builtin_provider_chapters__chapter_id__get",
-                "parameters": [
-                    {
-                        "name": "chapter_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid",
-                            "title": "Chapter Id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BuiltinChapterDetail"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/builtin-provider/chapters/{chapter_id}/pages": {
-            "get": {
-                "tags": [
-                    "manga-builtin"
-                ],
-                "summary": "Get Pages",
-                "description": "Get pages for a chapter.",
-                "operationId": "get_pages_api_v1_builtin_provider_chapters__chapter_id__pages_get",
-                "parameters": [
-                    {
-                        "name": "chapter_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid",
-                            "title": "Chapter Id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BuiltinPageListResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/builtin-provider/manga": {
-            "get": {
-                "tags": [
-                    "manga-builtin"
-                ],
-                "summary": "Search Manga",
-                "description": "Search and list manga.",
-                "operationId": "search_manga_api_v1_builtin_provider_manga_get",
-                "parameters": [
-                    {
-                        "name": "q",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "title": "Q"
-                        }
-                    },
-                    {
-                        "name": "tags",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "title": "Tags"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "default": 1,
-                            "title": "Page"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "maximum": 100,
-                            "minimum": 1,
-                            "default": 20,
-                            "title": "Page Size"
-                        }
-                    },
-                    {
-                        "name": "sort",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "title": "Sort"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BuiltinMangaListResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/builtin-provider/manga/{manga_id}": {
-            "get": {
-                "tags": [
-                    "manga-builtin"
-                ],
-                "summary": "Get Manga",
-                "description": "Get manga detail.",
-                "operationId": "get_manga_api_v1_builtin_provider_manga__manga_id__get",
-                "parameters": [
-                    {
-                        "name": "manga_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid",
-                            "title": "Manga Id"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BuiltinMangaDetail"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -3056,6 +2850,623 @@
                     }
                 }
             }
+        },
+        "/api/v1/manga/providers/{provider_id}/unsubscribe": {
+            "post": {
+                "summary": "Unsubscribe from manga provider",
+                "description": "Unsubscribe current user from a manga provider",
+                "tags": [
+                    "manga"
+                ],
+                "parameters": [
+                    {
+                        "name": "provider_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Unsubscribed"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/manga/history/entry": {
+            "delete": {
+                "summary": "Delete manga history entry",
+                "description": "Delete a reading history entry by provider_id and manga_id",
+                "tags": [
+                    "manga"
+                ],
+                "parameters": [
+                    {
+                        "name": "provider_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "manga_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/webnovel/novels": {
+            "post": {
+                "summary": "Add web novel",
+                "description": "Add a new web novel by URL",
+                "tags": [
+                    "webnovel"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddNovelRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddNovelResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "summary": "List user's novels",
+                "description": "Get paginated list of novels added by current user",
+                "tags": [
+                    "webnovel"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedNovelsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/webnovel/novels/all": {
+            "get": {
+                "summary": "List all novels (admin)",
+                "description": "Get paginated list of all novels (admin only)",
+                "tags": [
+                    "webnovel"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedNovelsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/webnovel/novels/{novel_id}": {
+            "get": {
+                "summary": "Get web novel",
+                "description": "Get a web novel with its chapters",
+                "tags": [
+                    "webnovel"
+                ],
+                "parameters": [
+                    {
+                        "name": "novel_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NovelWithChaptersResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/webnovel/novels/{novel_id}/chapters": {
+            "get": {
+                "summary": "Get novel chapters",
+                "description": "Get paginated chapters for a novel",
+                "tags": [
+                    "webnovel"
+                ],
+                "parameters": [
+                    {
+                        "name": "novel_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedNovelsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/webnovel/chapters/{chapter_id}/paragraphs": {
+            "get": {
+                "summary": "Get chapter paragraphs",
+                "description": "Get paginated paragraphs for a chapter",
+                "tags": [
+                    "webnovel"
+                ],
+                "parameters": [
+                    {
+                        "name": "chapter_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChapterResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/webnovel/preview": {
+            "post": {
+                "summary": "Preview web novel",
+                "description": "Preview a web novel from URL without adding it",
+                "tags": [
+                    "webnovel"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PreviewRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PreviewResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/webnovel/search": {
+            "post": {
+                "summary": "Search web novels",
+                "description": "Search for web novels (not yet implemented)",
+                "tags": [
+                    "webnovel"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SearchRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SearchResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/webnovel/novels/{novel_id}/sync": {
+            "post": {
+                "summary": "Sync web novel",
+                "description": "Sync a web novel from its source (not implemented)",
+                "tags": [
+                    "webnovel"
+                ],
+                "parameters": [
+                    {
+                        "name": "novel_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SyncRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -3262,6 +3673,7 @@
                 "properties": {
                     "url": {
                         "type": "string",
+                        "format": "uri",
                         "title": "Url"
                     }
                 },
@@ -3274,19 +3686,14 @@
             "AddNovelResponse": {
                 "properties": {
                     "novel": {
-                        "$ref": "#/components/schemas/NovelResponse"
+                        "$ref": "#/components/schemas/NovelDTO"
                     },
                     "job_id": {
                         "type": "string",
-                        "format": "uuid",
                         "title": "Job Id"
                     }
                 },
                 "type": "object",
-                "required": [
-                    "novel",
-                    "job_id"
-                ],
                 "title": "AddNovelResponse"
             },
             "AdminUserDetailResponse": {
@@ -3426,500 +3833,22 @@
                 "title": "AdminUserListResponse",
                 "description": "Schema for admin user list response."
             },
-            "BuiltinChapterDetail": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Id"
-                    },
-                    "manga_id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Manga Id"
-                    },
-                    "number": {
-                        "type": "string",
-                        "title": "Number"
-                    },
-                    "title": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Title"
-                    },
-                    "published_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Published At"
-                    },
-                    "pages": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinPageResponse"
-                        },
-                        "type": "array",
-                        "title": "Pages",
-                        "default": []
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "manga_id",
-                    "number",
-                    "published_at"
-                ],
-                "title": "BuiltinChapterDetail"
-            },
-            "BuiltinChapterListResponse": {
-                "properties": {
-                    "items": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinChapterSummary"
-                        },
-                        "type": "array",
-                        "title": "Items"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "items"
-                ],
-                "title": "BuiltinChapterListResponse"
-            },
-            "BuiltinChapterSummary": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Id"
-                    },
-                    "number": {
-                        "type": "string",
-                        "title": "Number"
-                    },
-                    "published_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Published At"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "number",
-                    "published_at"
-                ],
-                "title": "BuiltinChapterSummary"
-            },
-            "BuiltinMangaDetail": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Id"
-                    },
-                    "slug": {
-                        "type": "string",
-                        "title": "Slug"
-                    },
-                    "title": {
-                        "type": "string",
-                        "title": "Title"
-                    },
-                    "alternative_titles": {
-                        "items": {
-                            "type": "string"
-                        },
-                        "type": "array",
-                        "title": "Alternative Titles",
-                        "default": []
-                    },
-                    "cover_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Cover Url"
-                    },
-                    "thumbnail_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Thumbnail Url"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Description"
-                    },
-                    "source_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Source Url"
-                    },
-                    "tags": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinTagResponse"
-                        },
-                        "type": "array",
-                        "title": "Tags",
-                        "default": []
-                    },
-                    "score": {
-                        "type": "number",
-                        "title": "Score"
-                    },
-                    "views": {
-                        "type": "integer",
-                        "title": "Views"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Created At"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Updated At"
-                    },
-                    "latest_chapters": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinChapterSummary"
-                        },
-                        "type": "array",
-                        "title": "Latest Chapters",
-                        "default": []
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "slug",
-                    "title",
-                    "score",
-                    "views",
-                    "created_at",
-                    "updated_at"
-                ],
-                "title": "BuiltinMangaDetail"
-            },
-            "BuiltinMangaListResponse": {
-                "properties": {
-                    "items": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinMangaSummary"
-                        },
-                        "type": "array",
-                        "title": "Items"
-                    },
-                    "page": {
-                        "type": "integer",
-                        "title": "Page"
-                    },
-                    "page_size": {
-                        "type": "integer",
-                        "title": "Page Size"
-                    },
-                    "total": {
-                        "type": "integer",
-                        "title": "Total"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "items",
-                    "page",
-                    "page_size",
-                    "total"
-                ],
-                "title": "BuiltinMangaListResponse"
-            },
-            "BuiltinMangaSummary": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Id"
-                    },
-                    "slug": {
-                        "type": "string",
-                        "title": "Slug"
-                    },
-                    "title": {
-                        "type": "string",
-                        "title": "Title"
-                    },
-                    "alternative_titles": {
-                        "items": {
-                            "type": "string"
-                        },
-                        "type": "array",
-                        "title": "Alternative Titles",
-                        "default": []
-                    },
-                    "cover_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Cover Url"
-                    },
-                    "thumbnail_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Thumbnail Url"
-                    },
-                    "tags": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinTagResponse"
-                        },
-                        "type": "array",
-                        "title": "Tags",
-                        "default": []
-                    },
-                    "score": {
-                        "type": "number",
-                        "title": "Score"
-                    },
-                    "views": {
-                        "type": "integer",
-                        "title": "Views"
-                    },
-                    "latest_chapters": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinChapterSummary"
-                        },
-                        "type": "array",
-                        "title": "Latest Chapters",
-                        "default": []
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Updated At"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "slug",
-                    "title",
-                    "score",
-                    "views",
-                    "updated_at"
-                ],
-                "title": "BuiltinMangaSummary"
-            },
-            "BuiltinPageListResponse": {
-                "properties": {
-                    "pages": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinPageResponse"
-                        },
-                        "type": "array",
-                        "title": "Pages"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "pages"
-                ],
-                "title": "BuiltinPageListResponse"
-            },
-            "BuiltinPageResponse": {
-                "properties": {
-                    "index": {
-                        "type": "integer",
-                        "title": "Index"
-                    },
-                    "url": {
-                        "type": "string",
-                        "title": "Url"
-                    },
-                    "width": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Width"
-                    },
-                    "height": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Height"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "index",
-                    "url"
-                ],
-                "title": "BuiltinPageResponse"
-            },
-            "BuiltinProviderInfo": {
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "title": "Name"
-                    },
-                    "description": {
-                        "type": "string",
-                        "title": "Description"
-                    },
-                    "api_version": {
-                        "type": "string",
-                        "title": "Api Version"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "name",
-                    "description",
-                    "api_version"
-                ],
-                "title": "BuiltinProviderInfo"
-            },
-            "BuiltinTagListResponse": {
-                "properties": {
-                    "items": {
-                        "items": {
-                            "$ref": "#/components/schemas/BuiltinTagResponse"
-                        },
-                        "type": "array",
-                        "title": "Items"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "items"
-                ],
-                "title": "BuiltinTagListResponse"
-            },
-            "BuiltinTagResponse": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Id"
-                    },
-                    "name": {
-                        "type": "string",
-                        "title": "Name"
-                    },
-                    "slug": {
-                        "type": "string",
-                        "title": "Slug"
-                    },
-                    "category": {
-                        "type": "string",
-                        "title": "Category"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "name",
-                    "slug",
-                    "category"
-                ],
-                "title": "BuiltinTagResponse"
-            },
             "ChapterResponse": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Id"
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ChapterDTO"
                     },
-                    "novel_id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Novel Id"
-                    },
-                    "idx": {
-                        "type": "integer",
-                        "title": "Idx"
-                    },
-                    "title": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
+                    {
+                        "properties": {
+                            "paragraphs": {
+                                "items": {
+                                    "$ref": "#/components/schemas/ParagraphDTO"
+                                },
+                                "type": "array",
+                                "title": "Paragraphs"
                             }
-                        ],
-                        "title": "Title"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Created At"
-                    },
-                    "paragraphs": {
-                        "items": {
-                            "$ref": "#/components/schemas/ParagraphResponse"
-                        },
-                        "type": "array",
-                        "title": "Paragraphs",
-                        "default": []
+                        }
                     }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "novel_id",
-                    "idx",
-                    "title",
-                    "created_at"
                 ],
                 "title": "ChapterResponse"
             },
@@ -4299,22 +4228,14 @@
                     },
                     "page_index": {
                         "type": "integer",
-                        "title": "Page Index",
-                        "default": 0
+                        "title": "Page Index"
                     },
                     "title": {
                         "type": "string",
                         "title": "Title"
                     },
                     "cover_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "type": "string",
                         "title": "Cover Url"
                     }
                 },
@@ -4331,10 +4252,14 @@
                 "properties": {
                     "items": {
                         "items": {
-                            "$ref": "#/components/schemas/MangaHistoryResponse"
+                            "$ref": "#/components/schemas/MangaHistoryDTO"
                         },
                         "type": "array",
                         "title": "Items"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total"
                     },
                     "page": {
                         "type": "integer",
@@ -4343,18 +4268,14 @@
                     "page_size": {
                         "type": "integer",
                         "title": "Page Size"
-                    },
-                    "total": {
-                        "type": "integer",
-                        "title": "Total"
                     }
                 },
                 "type": "object",
                 "required": [
                     "items",
+                    "total",
                     "page",
-                    "page_size",
-                    "total"
+                    "page_size"
                 ],
                 "title": "MangaHistoryListResponse"
             },
@@ -4430,6 +4351,7 @@
                 "properties": {
                     "name": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "Name"
                     },
                     "base_url": {
@@ -4437,8 +4359,7 @@
                         "title": "Base Url"
                     },
                     "visibility": {
-                        "$ref": "#/components/schemas/ProviderVisibility",
-                        "default": "private"
+                        "$ref": "#/components/schemas/ProviderVisibility"
                     }
                 },
                 "type": "object",
@@ -4502,36 +4423,16 @@
             "MangaProviderUpdate": {
                 "properties": {
                     "name": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "type": "string",
+                        "minLength": 1,
                         "title": "Name"
                     },
                     "base_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "type": "string",
                         "title": "Base Url"
                     },
                     "visibility": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/ProviderVisibility"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
+                        "$ref": "#/components/schemas/ProviderVisibility"
                     }
                 },
                 "type": "object",
@@ -4613,26 +4514,12 @@
             "MangaUserSettingsUpdate": {
                 "properties": {
                     "schema_version": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "type": "integer",
                         "title": "Schema Version"
                     },
                     "data": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "additionalProperties": true,
+                        "type": "object",
                         "title": "Data"
                     }
                 },
@@ -4709,79 +4596,21 @@
                 "title": "NovelResponse"
             },
             "NovelWithChaptersResponse": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Id"
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/NovelDTO"
                     },
-                    "source": {
-                        "$ref": "#/components/schemas/SourceEnum"
-                    },
-                    "source_id": {
-                        "type": "string",
-                        "title": "Source Id"
-                    },
-                    "url": {
-                        "type": "string",
-                        "title": "Url"
-                    },
-                    "title": {
-                        "type": "string",
-                        "title": "Title"
-                    },
-                    "author": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
+                    {
+                        "properties": {
+                            "chapters": {
+                                "items": {
+                                    "$ref": "#/components/schemas/ChapterDTO"
+                                },
+                                "type": "array",
+                                "title": "Chapters"
                             }
-                        ],
-                        "title": "Author"
-                    },
-                    "synopsis": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Synopsis"
-                    },
-                    "added_by": {
-                        "type": "string",
-                        "format": "uuid",
-                        "title": "Added By"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Created At"
-                    },
-                    "chapters": {
-                        "items": {
-                            "$ref": "#/components/schemas/ChapterResponse"
-                        },
-                        "type": "array",
-                        "title": "Chapters",
-                        "default": []
+                        }
                     }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "source",
-                    "source_id",
-                    "url",
-                    "title",
-                    "author",
-                    "synopsis",
-                    "added_by",
-                    "created_at"
                 ],
                 "title": "NovelWithChaptersResponse"
             },
@@ -4853,7 +4682,7 @@
                 "properties": {
                     "novels": {
                         "items": {
-                            "$ref": "#/components/schemas/NovelResponse"
+                            "$ref": "#/components/schemas/NovelDTO"
                         },
                         "type": "array",
                         "title": "Novels"
@@ -4969,6 +4798,7 @@
                 "properties": {
                     "url": {
                         "type": "string",
+                        "format": "uri",
                         "title": "Url"
                     }
                 },
@@ -4980,13 +4810,6 @@
             },
             "PreviewResponse": {
                 "properties": {
-                    "source": {
-                        "$ref": "#/components/schemas/SourceEnum"
-                    },
-                    "source_id": {
-                        "type": "string",
-                        "title": "Source Id"
-                    },
                     "url": {
                         "type": "string",
                         "title": "Url"
@@ -4996,41 +4819,22 @@
                         "title": "Title"
                     },
                     "author": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "type": "string",
                         "title": "Author"
                     },
                     "synopsis": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "type": "string",
                         "title": "Synopsis"
                     },
-                    "chapter_count": {
-                        "type": "integer",
-                        "title": "Chapter Count"
+                    "source": {
+                        "$ref": "#/components/schemas/SourceEnum"
                     }
                 },
                 "type": "object",
                 "required": [
-                    "source",
-                    "source_id",
                     "url",
                     "title",
-                    "author",
-                    "synopsis",
-                    "chapter_count"
+                    "source"
                 ],
                 "title": "PreviewResponse"
             },
@@ -5401,6 +5205,20 @@
                         "type": "array",
                         "title": "Segments",
                         "default": []
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "queued",
+                            "error",
+                            "completed"
+                        ],
+                        "title": "Status"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Updated At"
                     }
                 },
                 "type": "object",
@@ -5411,7 +5229,9 @@
                     "provider_id",
                     "service_id",
                     "created_by",
-                    "created_at"
+                    "created_at",
+                    "status",
+                    "updated_at"
                 ],
                 "title": "SubtitleResponse"
             },
@@ -5776,6 +5596,376 @@
                     "pos"
                 ],
                 "title": "WordToken"
+            },
+            "MangaProviderDTO": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id"
+                    },
+                    "owner_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Owner Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "base_url": {
+                        "type": "string",
+                        "title": "Base Url"
+                    },
+                    "visibility": {
+                        "$ref": "#/components/schemas/ProviderVisibility"
+                    },
+                    "is_builtin": {
+                        "type": "boolean",
+                        "title": "Is Builtin"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Updated At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "owner_id",
+                    "name",
+                    "base_url",
+                    "visibility",
+                    "is_builtin",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "MangaProviderDTO"
+            },
+            "MangaSubscriptionDTO": {
+                "properties": {
+                    "user_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "User Id"
+                    },
+                    "provider_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Provider Id"
+                    },
+                    "provider": {
+                        "$ref": "#/components/schemas/MangaProviderDTO"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "provider_id",
+                    "created_at"
+                ],
+                "title": "MangaSubscriptionDTO"
+            },
+            "MangaHistoryDTO": {
+                "properties": {
+                    "user_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "User Id"
+                    },
+                    "provider_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Provider Id"
+                    },
+                    "manga_id": {
+                        "type": "string",
+                        "title": "Manga Id"
+                    },
+                    "chapter_id": {
+                        "type": "string",
+                        "title": "Chapter Id"
+                    },
+                    "page_index": {
+                        "type": "integer",
+                        "title": "Page Index"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "cover_url": {
+                        "type": "string",
+                        "title": "Cover Url"
+                    },
+                    "last_read_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Last Read At"
+                    },
+                    "provider": {
+                        "$ref": "#/components/schemas/MangaProviderDTO"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "provider_id",
+                    "manga_id",
+                    "chapter_id",
+                    "page_index",
+                    "title",
+                    "last_read_at"
+                ],
+                "title": "MangaHistoryDTO"
+            },
+            "MangaUserSettingsDTO": {
+                "properties": {
+                    "user_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "User Id"
+                    },
+                    "schema_version": {
+                        "type": "integer",
+                        "title": "Schema Version"
+                    },
+                    "data": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Data"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Updated At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "schema_version",
+                    "data",
+                    "updated_at"
+                ],
+                "title": "MangaUserSettingsDTO"
+            },
+            "MangaProviderListResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/MangaProviderDTO"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page"
+                    },
+                    "page_size": {
+                        "type": "integer",
+                        "title": "Page Size"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "page_size"
+                ],
+                "title": "MangaProviderListResponse"
+            },
+            "NovelDTO": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id"
+                    },
+                    "source": {
+                        "$ref": "#/components/schemas/SourceEnum"
+                    },
+                    "source_id": {
+                        "type": "string",
+                        "title": "Source Id"
+                    },
+                    "url": {
+                        "type": "string",
+                        "title": "Url"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "author": {
+                        "type": "string",
+                        "title": "Author"
+                    },
+                    "synopsis": {
+                        "type": "string",
+                        "title": "Synopsis"
+                    },
+                    "added_by": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Added By"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "source",
+                    "source_id",
+                    "url",
+                    "title",
+                    "added_by",
+                    "created_at"
+                ],
+                "title": "NovelDTO"
+            },
+            "ChapterDTO": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id"
+                    },
+                    "novel_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Novel Id"
+                    },
+                    "idx": {
+                        "type": "integer",
+                        "title": "Idx"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "novel_id",
+                    "idx",
+                    "created_at"
+                ],
+                "title": "ChapterDTO"
+            },
+            "ParagraphDTO": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id"
+                    },
+                    "chapter_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Chapter Id"
+                    },
+                    "idx": {
+                        "type": "integer",
+                        "title": "Idx"
+                    },
+                    "text": {
+                        "type": "string",
+                        "title": "Text"
+                    },
+                    "words": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Words"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "chapter_id",
+                    "idx",
+                    "text",
+                    "words"
+                ],
+                "title": "ParagraphDTO"
+            },
+            "SearchRequest": {
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Query"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "title": "Limit"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "query"
+                ],
+                "title": "SearchRequest"
+            },
+            "SearchResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/NovelDTO"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total"
+                ],
+                "title": "SearchResponse"
+            },
+            "SyncRequest": {
+                "properties": {
+                    "force": {
+                        "type": "boolean",
+                        "title": "Force"
+                    }
+                },
+                "type": "object",
+                "title": "SyncRequest"
             }
         },
         "securitySchemes": {
@@ -5790,6 +5980,16 @@
     "security": [
         {
             "HTTPBearer": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "manga",
+            "description": "Manga module endpoints"
+        },
+        {
+            "name": "webnovel",
+            "description": "Web novel module endpoints"
         }
     ]
 }

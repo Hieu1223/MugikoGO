@@ -60,13 +60,15 @@ type SubtitleSegmentResponse struct {
 }
 
 type SubtitleResponse struct {
-	ID         uuid.UUID                 `json:"id"`
-	VideoID    string                    `json:"video_id"`
-	VideoURL   string                    `json:"video_url"`
-	ProviderID uuid.UUID                 `json:"provider_id"`
-	ServiceID  uuid.UUID                 `json:"service_id"`
-	CreatedBy  uuid.UUID                 `json:"created_by"`
-	CreatedAt  time.Time                 `json:"created_at"`
+	ID         uuid.UUID `json:"id"`
+	VideoID    string    `json:"video_id"`
+	VideoURL   string    `json:"video_url"`
+	ProviderID uuid.UUID `json:"provider_id"`
+	ServiceID  uuid.UUID `json:"service_id"`
+	CreatedBy  uuid.UUID `json:"created_by"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 type SubtitleSegmentsResponse struct {

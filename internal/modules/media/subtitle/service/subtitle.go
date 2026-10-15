@@ -24,6 +24,72 @@ func (s *SubtitleService) Initialize() error {
 	return s.repo.InitializeSchema()
 }
 
+// SeedYouTubeAutoCaption seeds the YouTube provider with Japanese auto-caption service
+func (s *SubtitleService) SeedYouTubeAutoCaption() error {
+	// Check if YouTube provider already exists
+	providers, err := s.repo.GetActiveProviders()
+	if err != nil {
+		return err
+	}
+
+	var youtubeProvider *persistent.SubtitleProvider
+	for _, p := range providers {
+		if p.Kind == persistent.ProviderKindYouTube {
+			youtubeProvider = p
+			break
+		}
+	}
+
+	var providerID uuid.UUID
+	if youtubeProvider == nil {
+		// Create YouTube provider
+		provider, err := s.CreateProvider(dto.SubtitleProviderCreate{
+			Name: "YouTube",
+			Kind: dto.ProviderKindYouTube,
+		})
+		if err != nil {
+			return err
+		}
+		providerID = provider.ID
+	} else {
+		providerID = youtubeProvider.ID
+	}
+
+	// Check if auto-caption service exists
+	services, err := s.repo.GetProviderServices(providerID)
+	if err != nil {
+		return err
+	}
+
+	hasAutoCaption := false
+	for _, svc := range services {
+		if svc.ServiceKey == "auto_caption" {
+			hasAutoCaption = true
+			break
+		}
+	}
+
+	if !hasAutoCaption {
+		// Add auto-caption service with Japanese language option
+		options := map[string]any{
+			"languages":          []string{"ja", "en"},
+			"default_language":   "ja",
+		}
+		err = s.repo.UpsertServices(providerID, []map[string]any{
+			{
+				"service_key": "auto_caption",
+				"name":        "Auto Caption",
+				"options":     options,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Provider methods
 func (s *SubtitleService) ListProviders() ([]*dto.SubtitleProviderResponse, error) {
 	providers, err := s.repo.GetActiveProviders()
@@ -134,7 +200,9 @@ func (s *SubtitleService) CreateSubtitle(userID uuid.UUID, data dto.SubtitleCrea
 		ProviderID: subtitle.ProviderID,
 		ServiceID:  subtitle.ServiceID,
 		CreatedBy:  subtitle.CreatedBy,
+		Status:     subtitle.Status,
 		CreatedAt:  subtitle.CreatedAt,
+		UpdatedAt:  subtitle.UpdatedAt,
 	}, nil
 }
 
@@ -156,7 +224,9 @@ func (s *SubtitleService) GetSubtitle(subtitleID uuid.UUID, userID *uuid.UUID) (
 		ProviderID: subtitle.ProviderID,
 		ServiceID:  subtitle.ServiceID,
 		CreatedBy:  subtitle.CreatedBy,
+		Status:     subtitle.Status,
 		CreatedAt:  subtitle.CreatedAt,
+		UpdatedAt:  subtitle.UpdatedAt,
 	}, nil
 }
 

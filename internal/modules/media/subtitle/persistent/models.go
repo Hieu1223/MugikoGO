@@ -43,7 +43,9 @@ type Subtitle struct {
 	ProviderID uuid.UUID `json:"provider_id"`
 	ServiceID  uuid.UUID `json:"service_id"`
 	CreatedBy  uuid.UUID `json:"created_by"`
+	Status     string    `json:"status"`
 	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 type SubtitleSegment struct {

@@ -18,112 +18,123 @@ func NewSubtitleRepository(db *sql.DB) *SubtitleRepository {
 }
 
 func (r *SubtitleRepository) InitializeSchema() error {
-	schema := `
-	-- Subtitle providers
-	CREATE TABLE IF NOT EXISTS subtitle_providers (
-		id TEXT PRIMARY KEY,
-		name TEXT NOT NULL,
-		kind TEXT NOT NULL,
-		base_url TEXT,
-		is_active BOOLEAN DEFAULT TRUE NOT NULL,
-		last_synced_at TIMESTAMP,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-	);
+	// Core tables
+	coreSchema := `
+-- Subtitle providers
+CREATE TABLE IF NOT EXISTS subtitle_providers (
+	id TEXT PRIMARY KEY,
+	name TEXT NOT NULL,
+	kind TEXT NOT NULL,
+	base_url TEXT,
+	is_active BOOLEAN DEFAULT TRUE NOT NULL,
+	last_synced_at TIMESTAMP,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
 
-	-- Subtitle provider services
-	CREATE TABLE IF NOT EXISTS subtitle_provider_services (
-		id TEXT PRIMARY KEY,
-		provider_id TEXT NOT NULL REFERENCES subtitle_providers(id) ON DELETE CASCADE,
-		service_key TEXT NOT NULL,
-		name TEXT NOT NULL,
-		options TEXT,
-		is_active BOOLEAN DEFAULT TRUE NOT NULL,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-		UNIQUE(provider_id, service_key)
-	);
+-- Subtitle provider services
+CREATE TABLE IF NOT EXISTS subtitle_provider_services (
+	id TEXT PRIMARY KEY,
+	provider_id TEXT NOT NULL REFERENCES subtitle_providers(id) ON DELETE CASCADE,
+	service_key TEXT NOT NULL,
+	name TEXT NOT NULL,
+	options TEXT,
+	is_active BOOLEAN DEFAULT TRUE NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	UNIQUE(provider_id, service_key)
+);
 
-	-- Subtitles
-	CREATE TABLE IF NOT EXISTS subtitles (
-		id TEXT PRIMARY KEY,
-		video_id TEXT NOT NULL,
-		video_url TEXT NOT NULL,
-		provider_id TEXT NOT NULL REFERENCES subtitle_providers(id),
-		service_id TEXT NOT NULL REFERENCES subtitle_provider_services(id),
-		created_by TEXT NOT NULL,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-	);
+-- Subtitles
+CREATE TABLE IF NOT EXISTS subtitles (
+	id TEXT PRIMARY KEY,
+	video_id TEXT NOT NULL,
+	video_url TEXT NOT NULL,
+	provider_id TEXT NOT NULL REFERENCES subtitle_providers(id),
+	service_id TEXT NOT NULL REFERENCES subtitle_provider_services(id),
+	created_by TEXT NOT NULL,
+	status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'error', 'completed')),
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
 
-	CREATE INDEX IF NOT EXISTS ix_subtitles_video_id ON subtitles(video_id);
+CREATE INDEX IF NOT EXISTS ix_subtitles_video_id ON subtitles(video_id);
 
-	-- Subtitle segments
-	CREATE TABLE IF NOT EXISTS subtitle_segments (
-		id TEXT PRIMARY KEY,
-		subtitle_id TEXT NOT NULL REFERENCES subtitles(id) ON DELETE CASCADE,
-		idx INTEGER NOT NULL,
-		start_ms INTEGER NOT NULL,
-		end_ms INTEGER NOT NULL,
-		words TEXT,
-		UNIQUE(subtitle_id, idx)
-	);
+-- Subtitle segments
+CREATE TABLE IF NOT EXISTS subtitle_segments (
+	id TEXT PRIMARY KEY,
+	subtitle_id TEXT NOT NULL REFERENCES subtitles(id) ON DELETE CASCADE,
+	idx INTEGER NOT NULL,
+	start_ms INTEGER NOT NULL,
+	end_ms INTEGER NOT NULL,
+	words TEXT,
+	UNIQUE(subtitle_id, idx)
+);
 
-	-- Subtitle access (visit history)
-	CREATE TABLE IF NOT EXISTS subtitle_access (
-		user_id TEXT NOT NULL,
-		subtitle_id TEXT NOT NULL REFERENCES subtitles(id) ON DELETE CASCADE,
-		last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-		PRIMARY KEY (user_id, subtitle_id)
-	);
+-- Subtitle access (visit history)
+CREATE TABLE IF NOT EXISTS subtitle_access (
+	user_id TEXT NOT NULL,
+	subtitle_id TEXT NOT NULL REFERENCES subtitles(id) ON DELETE CASCADE,
+	last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	PRIMARY KEY (user_id, subtitle_id)
+);
 
-	-- User settings
-	CREATE TABLE IF NOT EXISTS user_settings (
-		user_id TEXT PRIMARY KEY,
-		schema_version INTEGER DEFAULT 1 NOT NULL,
-		data TEXT NOT NULL DEFAULT '{}',
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-	);
+-- User settings
+CREATE TABLE IF NOT EXISTS user_settings (
+	user_id TEXT PRIMARY KEY,
+	schema_version INTEGER DEFAULT 1 NOT NULL,
+	data TEXT NOT NULL DEFAULT '{}',
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
 
-	-- Subtitle user state
-	CREATE TABLE IF NOT EXISTS subtitle_user_state (
-		user_id TEXT NOT NULL,
-		subtitle_id TEXT NOT NULL REFERENCES subtitles(id) ON DELETE CASCADE,
-		schema_version INTEGER DEFAULT 1 NOT NULL,
-		data TEXT NOT NULL DEFAULT '{}',
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-		PRIMARY KEY (user_id, subtitle_id)
-	);
+-- Subtitle user state
+CREATE TABLE IF NOT EXISTS subtitle_user_state (
+	user_id TEXT NOT NULL,
+	subtitle_id TEXT NOT NULL REFERENCES subtitles(id) ON DELETE CASCADE,
+	schema_version INTEGER DEFAULT 1 NOT NULL,
+	data TEXT NOT NULL DEFAULT '{}',
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	PRIMARY KEY (user_id, subtitle_id)
+);
 
-	-- Trigger for updated_at on subtitle_providers
-	CREATE TRIGGER IF NOT EXISTS trg_subtitle_providers_updated_at
-	AFTER UPDATE ON subtitle_providers
-	BEGIN
-		UPDATE subtitle_providers SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-	END;
+-- Trigger for updated_at on subtitle_providers
+CREATE TRIGGER IF NOT EXISTS trg_subtitle_providers_updated_at
+AFTER UPDATE ON subtitle_providers
+BEGIN
+	UPDATE subtitle_providers SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
 
-	-- Trigger for updated_at on subtitle_provider_services
-	CREATE TRIGGER IF NOT EXISTS trg_subtitle_provider_services_updated_at
-	AFTER UPDATE ON subtitle_provider_services
-	BEGIN
-		UPDATE subtitle_provider_services SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-	END;
+-- Trigger for updated_at on subtitle_provider_services
+CREATE TRIGGER IF NOT EXISTS trg_subtitle_provider_services_updated_at
+AFTER UPDATE ON subtitle_provider_services
+BEGIN
+	UPDATE subtitle_provider_services SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
 
-	-- Trigger for updated_at on user_settings
-	CREATE TRIGGER IF NOT EXISTS trg_user_settings_updated_at
-	AFTER UPDATE ON user_settings
-	BEGIN
-		UPDATE user_settings SET updated_at = CURRENT_TIMESTAMP WHERE user_id = NEW.user_id;
-	END;
+-- Trigger for updated_at on user_settings
+CREATE TRIGGER IF NOT EXISTS trg_user_settings_updated_at
+AFTER UPDATE ON user_settings
+BEGIN
+	UPDATE user_settings SET updated_at = CURRENT_TIMESTAMP WHERE user_id = NEW.user_id;
+END;
 
-	-- Trigger for updated_at on subtitle_user_state
-	CREATE TRIGGER IF NOT EXISTS trg_subtitle_user_state_updated_at
-	AFTER UPDATE ON subtitle_user_state
-	BEGIN
-		UPDATE subtitle_user_state SET updated_at = CURRENT_TIMESTAMP WHERE user_id = NEW.user_id AND subtitle_id = NEW.subtitle_id;
-	END;
-	`
-	_, err := r.db.Exec(schema)
-	return err
+-- Trigger for updated_at on subtitle_user_state
+CREATE TRIGGER IF NOT EXISTS trg_subtitle_user_state_updated_at
+AFTER UPDATE ON subtitle_user_state
+BEGIN
+	UPDATE subtitle_user_state SET updated_at = CURRENT_TIMESTAMP WHERE user_id = NEW.user_id AND subtitle_id = NEW.subtitle_id;
+END;
+`
+	if _, err := r.db.Exec(coreSchema); err != nil {
+		return err
+	}
+
+	// Migration: add status column if missing (for existing tables without it)
+	// SQLite doesn't support IF NOT EXISTS for ADD COLUMN, so we use a workaround
+	// This will fail silently if column already exists
+	_, _ = r.db.Exec(`ALTER TABLE subtitles ADD COLUMN status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'error', 'completed'));`)
+
+	return nil
 }
 
 // Provider methods
@@ -326,15 +337,15 @@ func (r *SubtitleRepository) UpsertServices(providerID uuid.UUID, services []map
 func (r *SubtitleRepository) CreateSubtitle(videoID, videoURL string, providerID, serviceID, createdBy uuid.UUID) (*Subtitle, error) {
 	id := uuid.New()
 	now := time.Now()
-	
+
 	_, err := r.db.Exec(
-		`INSERT INTO subtitles (id, video_id, video_url, provider_id, service_id, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		id.String(), videoID, videoURL, providerID.String(), serviceID.String(), createdBy.String(), now,
+		`INSERT INTO subtitles (id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		id.String(), videoID, videoURL, providerID.String(), serviceID.String(), createdBy.String(), "queued", now, now,
 	)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &Subtitle{
 		ID:         id,
 		VideoID:    videoID,
@@ -342,48 +353,50 @@ func (r *SubtitleRepository) CreateSubtitle(videoID, videoURL string, providerID
 		ProviderID: providerID,
 		ServiceID:  serviceID,
 		CreatedBy:  createdBy,
+		Status:     "queued",
 		CreatedAt:  now,
+		UpdatedAt:  now,
 	}, nil
 }
 
 func (r *SubtitleRepository) GetSubtitle(subtitleID uuid.UUID) (*Subtitle, error) {
 	row := r.db.QueryRow(
-		`SELECT id, video_id, video_url, provider_id, service_id, created_by, created_at FROM subtitles WHERE id = ?`,
+		`SELECT id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at FROM subtitles WHERE id = ?`,
 		subtitleID.String(),
 	)
-	
+
 	var s Subtitle
-	err := row.Scan(&s.ID, &s.VideoID, &s.VideoURL, &s.ProviderID, &s.ServiceID, &s.CreatedBy, &s.CreatedAt)
+	err := row.Scan(&s.ID, &s.VideoID, &s.VideoURL, &s.ProviderID, &s.ServiceID, &s.CreatedBy, &s.Status, &s.CreatedAt, &s.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, ErrSubtitleNotFound
 	}
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &s, nil
 }
 
 func (r *SubtitleRepository) GetSubtitlesByVideoID(videoID string, limit, offset int) ([]*Subtitle, error) {
 	rows, err := r.db.Query(
-		`SELECT id, video_id, video_url, provider_id, service_id, created_by, created_at FROM subtitles WHERE video_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at FROM subtitles WHERE video_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
 		videoID, limit, offset,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var subtitles []*Subtitle
 	for rows.Next() {
 		var s Subtitle
-		err := rows.Scan(&s.ID, &s.VideoID, &s.VideoURL, &s.ProviderID, &s.ServiceID, &s.CreatedBy, &s.CreatedAt)
+		err := rows.Scan(&s.ID, &s.VideoID, &s.VideoURL, &s.ProviderID, &s.ServiceID, &s.CreatedBy, &s.Status, &s.CreatedAt, &s.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 		subtitles = append(subtitles, &s)
 	}
-	
+
 	return subtitles, rows.Err()
 }
 

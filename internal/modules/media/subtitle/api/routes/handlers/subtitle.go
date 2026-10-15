@@ -76,6 +76,35 @@ func (h *SubtitleHandler) CreateProvider(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(provider)
 }
 
+func (h *SubtitleHandler) CreateSubtitle(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := getUserID(r)
+	if userID == nil {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		return
+	}
+
+	var req dto.SubtitleCreate
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	subtitle, err := h.svc.CreateSubtitle(*userID, req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(subtitle)
+}
+
 func (h *SubtitleHandler) SearchSubtitles(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
