@@ -2,10 +2,11 @@ package internal
 
 import (
 	"database/sql"
+	"fmt"
 	"mugiko/internal/common/middleware"
+	deckroutes "mugiko/internal/modules/core/deck/api/routes"
 	log "mugiko/internal/modules/core/log"
 	lookuproutes "mugiko/internal/modules/core/lookup/api/routes"
-	deckroutes "mugiko/internal/modules/core/deck/api/routes"
 	userroutes "mugiko/internal/modules/core/user/api/routes"
 	userhandlers "mugiko/internal/modules/core/user/api/routes/handlers"
 	user "mugiko/internal/modules/core/user/middleware"
@@ -17,10 +18,24 @@ import (
 func Run() {
 	// Open database
 	db, err := sql.Open("sqlite", "./mugiko.db")
+
 	if err != nil {
 		panic("failed to open database: " + err.Error())
 	}
 	defer db.Close()
+
+	_, err = db.Exec("PRAGMA journal_mode=WAL;")
+	if err != nil {
+		panic("failed to WAL: " + err.Error())
+	}
+
+	// Recommended: Set synchronous to NORMAL for better WAL performance
+	_, err = db.Exec("PRAGMA synchronous=NORMAL;")
+	if err != nil {
+		panic("failed to Sync Normal: " + err.Error())
+	}
+
+	fmt.Println("WAL mode successfully enabled!")
 
 	stack := middleware.Stack(
 		log.Log,

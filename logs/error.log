@@ -1,0 +1,673 @@
+[2026-10-15 11:51:22] INFO:	 127.0.0.1:60813 - "POST /api/v1/decks/80348e10-c9d0-4367-b2c8-524e93462cb5/words HTTP/1.1" 500 Internal Server Error - 1.688ms
+[2026-10-15 11:55:29] INFO:	 127.0.0.1:61975 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 9.852ms
+[2026-10-15 11:55:29] INFO:	 127.0.0.1:61983 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 2.332ms
+[2026-10-15 12:00:07] INFO:	 127.0.0.1:63422 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 28.752ms
+Stack trace:
+goroutine 36 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x19e0409445c0, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:28 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7efeb0288, 0x19e0407caa90}, {0x19e040951950, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x19e04213a050, {0x7ff7efeb0288, 0x19e0407caa90}, 0x19e04094e500)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x19e0408b03c0?, {0x7ff7efeb0288?, 0x19e0407caa90?}, 0x19e04093d7f0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7efeb0288, 0x19e0407caa90}, 0x19e04094e500)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7efeb0258, 0x19e0409445c0}, 0x19e04094e3c0)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x38?, {0x7ff7efeb0258?, 0x19e0409445c0?}, 0x7ff7efe10f38?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff7efeb0318, 0x19e0409560f0}, 0x19e04094e3c0)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:72 +0x154
+net/http.HandlerFunc.ServeHTTP(0x7ff7ef75e780?, {0x7ff7efeb0318?, 0x19e0409560f0?}, 0x19e04093dae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff7efeb0318?, 0x19e0409560f0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x19e0408f0480, {0x7ff7efeb07b8, 0x19e0407c4690})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:10:26] INFO:	 127.0.0.1:50973 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 3.832ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 179 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x3887b4e212c0, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff6290203d0, 0x3887b4fd2080}, {0x3887b4fc5230, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x3887b327c070, {0x7ff6290203d0, 0x3887b4fd2080}, 0x3887b4f86dc0)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x3887b33303c0?, {0x7ff6290203d0?, 0x3887b4fd2080?}, 0x3887b4eb37e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff6290203d0, 0x3887b4fd2080}, 0x3887b4f86dc0)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff6290203a0, 0x3887b4e212c0}, 0x3887b4f86c80)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff6290203a0?, 0x3887b4e212c0?}, 0x7ff629096360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff629020460, 0x3887b4e6ac30}, 0x3887b4f86c80)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff6288ce780?, {0x7ff629020460?, 0x3887b4e6ac30?}, 0x3887b4eb3ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff629020460?, 0x3887b4e6ac30?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x3887b4e45560, {0x7ff629020900, 0x3887b329c690})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:10:26] INFO:	 127.0.0.1:50982 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 2.363ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 151 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x3887b33552c0, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff6290203d0, 0x3887b50863b0}, {0x3887b4e7dce0, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x3887b327c070, {0x7ff6290203d0, 0x3887b50863b0}, 0x3887b5088280)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x3887b33303c0?, {0x7ff6290203d0?, 0x3887b50863b0?}, 0x3887b4eb77e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff6290203d0, 0x3887b50863b0}, 0x3887b5088280)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff6290203a0, 0x3887b33552c0}, 0x3887b5024640)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff6290203a0?, 0x3887b33552c0?}, 0x7ff629096360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff629020460, 0x3887b33c34a0}, 0x3887b5024640)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff6288ce780?, {0x7ff629020460?, 0x3887b33c34a0?}, 0x3887b4eb7ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff629020460?, 0x3887b33c34a0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x3887b50022d0, {0x7ff629020900, 0x3887b329c690})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:10:26] INFO:	 127.0.0.1:51000 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 1.055ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 201 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x3887b3355900, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff6290203d0, 0x3887b5086f10}, {0x3887b50a62a0, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x3887b327c070, {0x7ff6290203d0, 0x3887b5086f10}, 0x3887b5089540)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x3887b33303c0?, {0x7ff6290203d0?, 0x3887b5086f10?}, 0x3887b4eb77e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff6290203d0, 0x3887b5086f10}, 0x3887b5089540)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff6290203a0, 0x3887b3355900}, 0x3887b5089400)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff6290203a0?, 0x3887b3355900?}, 0x7ff629096360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff629020460, 0x3887b33c3a40}, 0x3887b5089400)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff6288ce780?, {0x7ff629020460?, 0x3887b33c3a40?}, 0x3887b4eb7ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff629020460?, 0x3887b33c3a40?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x3887b33bf830, {0x7ff629020900, 0x3887b329c690})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:10:26] INFO:	 127.0.0.1:51005 - "POST /api/v1/decks/bcd84950-b313-4753-a8cd-6f4f12ec3ca3/words HTTP/1.1" 500 Internal Server Error - 30.650ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 219 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x3887b3359700, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff6290203d0, 0x3887b4f18540}, {0x3887b4f20570, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).AddWord(0x3887b327c070, {0x7ff6290203d0, 0x3887b4f18540}, 0x3887b4f24640)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:235 +0x385
+net/http.HandlerFunc.ServeHTTP(0x3887b33303c0?, {0x7ff6290203d0?, 0x3887b4f18540?}, 0x3887b50ad7e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff6290203d0, 0x3887b4f18540}, 0x3887b4f24640)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff6290203a0, 0x3887b3359700}, 0x3887b4c63cc0)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff6290203a0?, 0x3887b3359700?}, 0x7ff629096360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff629020460, 0x3887b4c03590}, 0x3887b4c63cc0)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff6288ce780?, {0x7ff629020460?, 0x3887b4c03590?}, 0x3887b50adae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff629020460?, 0x3887b4c03590?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x3887b336b4d0, {0x7ff629020900, 0x3887b329c690})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:10:26] INFO:	 127.0.0.1:51009 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 4.713ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 187 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x3887b3359940, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff6290203d0, 0x3887b4c7b710}, {0x3887b4c7f7d0, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x3887b327c070, {0x7ff6290203d0, 0x3887b4c7b710}, 0x3887b4eb03c0)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x3887b33303c0?, {0x7ff6290203d0?, 0x3887b4c7b710?}, 0x3887b4bed7e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff6290203d0, 0x3887b4c7b710}, 0x3887b4eb03c0)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff6290203a0, 0x3887b3359940}, 0x3887b4eb0280)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff6290203a0?, 0x3887b3359940?}, 0x7ff629096360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff629020460, 0x3887b4c03770}, 0x3887b4eb0280)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff6288ce780?, {0x7ff629020460?, 0x3887b4c03770?}, 0x3887b4bedae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff629020460?, 0x3887b4c03770?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x3887b4e459e0, {0x7ff629020900, 0x3887b329c690})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:10:26] INFO:	 127.0.0.1:51033 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 4.780ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 252 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x3887b4f1c280, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff6290203d0, 0x3887b4f189b0}, {0x3887b4f20720, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x3887b327c070, {0x7ff6290203d0, 0x3887b4f189b0}, 0x3887b4f24b40)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x3887b33303c0?, {0x7ff6290203d0?, 0x3887b4f189b0?}, 0x3887b50dd7e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff6290203d0, 0x3887b4f189b0}, 0x3887b4f24b40)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff6290203a0, 0x3887b4f1c280}, 0x3887b50bd400)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff6290203a0?, 0x3887b4f1c280?}, 0x7ff629096360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff629020460, 0x3887b4f1a1e0}, 0x3887b50bd400)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff6288ce780?, {0x7ff629020460?, 0x3887b4f1a1e0?}, 0x3887b50ddae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff629020460?, 0x3887b4f1a1e0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x3887b5002e10, {0x7ff629020900, 0x3887b329c690})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:10:26] INFO:	 127.0.0.1:51048 - "POST /api/v1/decks/1d46cf52-4d4b-4034-9552-71bbca76bede/words HTTP/1.1" 500 Internal Server Error - 18.288ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 306 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x3887b4ef03c0, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff6290203d0, 0x3887b4ee3b00}, {0x3887b4ef8ed0, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).AddWord(0x3887b327c070, {0x7ff6290203d0, 0x3887b4ee3b00}, 0x3887b4ee12c0)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:235 +0x385
+net/http.HandlerFunc.ServeHTTP(0x3887b33303c0?, {0x7ff6290203d0?, 0x3887b4ee3b00?}, 0x3887b51037e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff6290203d0, 0x3887b4ee3b00}, 0x3887b4ee12c0)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff6290203a0, 0x3887b4ef03c0}, 0x3887b4ee1180)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff6290203a0?, 0x3887b4ef03c0?}, 0x7ff629096360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff629020460, 0x3887b4bd1770}, 0x3887b4ee1180)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff6288ce780?, {0x7ff629020460?, 0x3887b4bd1770?}, 0x3887b5103ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff629020460?, 0x3887b4bd1770?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x3887b33bfd40, {0x7ff629020900, 0x3887b329c690})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:12:42] INFO:	 127.0.0.1:51926 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 0.722ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 76 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x287d18854980, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7d71b0440, 0x287d18853150}, {0x287d1a181d10, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x287d18882058, {0x7ff7d71b0440, 0x287d18853150}, 0x287d1887d540)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x287d18832480?, {0x7ff7d71b0440?, 0x287d18853150?}, 0x287d188a57e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7d71b0440, 0x287d18853150}, 0x287d1887d540)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7d71b0410, 0x287d18854980}, 0x287d1887d400)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7d71b0410?, 0x287d18854980?}, 0x7ff7d7226360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff7d71b04d0, 0x287d1a1924b0}, 0x287d1887d400)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff7d6a5e780?, {0x7ff7d71b04d0?, 0x287d1a1924b0?}, 0x287d188a5ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff7d71b04d0?, 0x287d1a1924b0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x287d1a42a510, {0x7ff7d71b0970, 0x287d187bde60})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:12:43] INFO:	 127.0.0.1:51980 - "POST /api/v1/decks/68a7ea75-ad44-4954-b5fd-e81b9d200a02/words HTTP/1.1" 500 Internal Server Error - 0.534ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 220 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x287d1a4174c0, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7d71b0440, 0x287d1a1e7550}, {0x287d1a4bf2c0, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).AddWord(0x287d18882058, {0x7ff7d71b0440, 0x287d1a1e7550}, 0x287d1a624780)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:235 +0x385
+net/http.HandlerFunc.ServeHTTP(0x287d18832480?, {0x7ff7d71b0440?, 0x287d1a1e7550?}, 0x287d1a0e57e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7d71b0440, 0x287d1a1e7550}, 0x287d1a624780)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7d71b0410, 0x287d1a4174c0}, 0x287d1a0e12c0)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7d71b0410?, 0x287d1a4174c0?}, 0x7ff7d7226360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff7d71b04d0, 0x287d1a4332c0}, 0x287d1a0e12c0)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff7d6a5e780?, {0x7ff7d71b04d0?, 0x287d1a4332c0?}, 0x287d1a0e5ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff7d71b04d0?, 0x287d1a4332c0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x287d1a42b7a0, {0x7ff7d71b0970, 0x287d187bde60})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:12:43] INFO:	 127.0.0.1:51988 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 0.000ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 170 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x287d1a0daa80, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7d71b0440, 0x287d1a0d92a0}, {0x287d1a55a030, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x287d18882058, {0x7ff7d71b0440, 0x287d1a0d92a0}, 0x287d1a0e17c0)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x287d18832480?, {0x7ff7d71b0440?, 0x287d1a0d92a0?}, 0x287d1a0e57e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7d71b0440, 0x287d1a0d92a0}, 0x287d1a0e17c0)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7d71b0410, 0x287d1a0daa80}, 0x287d1a0e1680)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7d71b0410?, 0x287d1a0daa80?}, 0x7ff7d7226360?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff7d71b04d0, 0x287d1a0fa3c0}, 0x287d1a0e1680)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff7d6a5e780?, {0x7ff7d71b04d0?, 0x287d1a0fa3c0?}, 0x287d1a0e5ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff7d71b04d0?, 0x287d1a0fa3c0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x287d1a182f30, {0x7ff7d71b0970, 0x287d187bde60})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:14:49] INFO:	 127.0.0.1:52781 - "POST /api/v1/decks/944c6572-41bd-4b52-9833-4ea3ba089552/words HTTP/1.1" 500 Internal Server Error - 0.030ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 97 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b7b08180, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7b06120}, {0x1af2b7b22120, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).AddWord(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7b06120}, 0x1af2b7b0a280)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:235 +0x385
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7b06120?}, 0x1af2b5ed37e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7b06120}, 0x1af2b7b0a280)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b7b08180}, 0x1af2b7b0a140)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b7b08180?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b7b1e000}, 0x1af2b7b0a140)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b7b1e000?}, 0x1af2b5ed3ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b7b1e000?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b79aa990, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:52961 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 3.293ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 284 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b5ec5500, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7a7e700}, {0x1af2b7c6db90, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7a7e700}, 0x1af2b7a78000)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7a7e700?}, 0x1af2b77557e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7a7e700}, 0x1af2b7a78000)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b5ec5500}, 0x1af2b7ac92c0)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b5ec5500?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b5ee51d0}, 0x1af2b7ac92c0)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b5ee51d0?}, 0x1af2b7755ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b5ee51d0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b7ae8240, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:52964 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 0.540ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 262 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b7c5a340, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7bcc1f0}, {0x1af2b7c6dce0, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7bcc1f0}, 0x1af2b7c43680)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7bcc1f0?}, 0x1af2b77597e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7bcc1f0}, 0x1af2b7c43680)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b7c5a340}, 0x1af2b7c43540)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b7c5a340?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b7c543c0}, 0x1af2b7c43540)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b7c543c0?}, 0x1af2b7759ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b7c543c0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b7c581b0, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:52967 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 0.000ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 338 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b7aec400, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7acd730}, {0x1af2b7ae6780, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7acd730}, 0x1af2b7ac9a40)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7acd730?}, 0x1af2b7af57e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7acd730}, 0x1af2b7ac9a40)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b7aec400}, 0x1af2b7ac9900)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b7aec400?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b7937c20}, 0x1af2b7ac9900)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b7937c20?}, 0x1af2b7af5ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b7937c20?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b7ae85a0, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:52983 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 1.000ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 359 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b5ec5a40, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7a7f190}, {0x1af2b7ad8f60, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7a7f190}, 0x1af2b7a78f00)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7a7f190?}, 0x1af2b77597e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7a7f190}, 0x1af2b7a78f00)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b5ec5a40}, 0x1af2b7a78dc0)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b5ec5a40?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b5ee5680}, 0x1af2b7a78dc0)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b5ee5680?}, 0x1af2b7759ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b5ee5680?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b5ed9dd0, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:52991 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 0.805ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 378 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b7bd6700, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7bf72c0}, {0x1af2b775a120, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7bf72c0}, 0x1af2b7bf0b40)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7bf72c0?}, 0x1af2b7af17e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7bf72c0}, 0x1af2b7bf0b40)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b7bd6700}, 0x1af2b7bf0a00)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b7bd6700?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b7991d10}, 0x1af2b7bf0a00)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b7991d10?}, 0x1af2b7af1ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b7991d10?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b7d862d0, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:53043 - "POST /api/v1/decks HTTP/1.1" 500 Internal Server Error - 5.002ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 442 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b7c8acc0, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7c85d70}, {0x1af2b7f4d290, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).CreateDeck(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7c85d70}, 0x1af2b7c95cc0)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:50 +0x2a8
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7c85d70?}, 0x1af2b7cf37e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7c85d70}, 0x1af2b7c95cc0)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b7c8acc0}, 0x1af2b7c95b80)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b7c8acc0?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b7c86780}, 0x1af2b7c95b80)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b7c86780?}, 0x1af2b7cf3ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b7c86780?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b775efc0, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:53098 - "POST /api/v1/decks/8b3f0095-e3e9-4d76-acf0-e6b757ba716e/words HTTP/1.1" 500 Internal Server Error - 0.998ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 560 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b7f581c0, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7f3c520}, {0x1af2b7e085a0, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).AddWord(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7f3c520}, 0x1af2b7f5c000)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:235 +0x385
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7f3c520?}, 0x1af2b7fc37e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7f3c520}, 0x1af2b7f5c000)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b7f581c0}, 0x1af2b7f65cc0)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b7f581c0?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b7763860}, 0x1af2b7f65cc0)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b7763860?}, 0x1af2b7fc3ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b7763860?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b7fb6480, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:53118 - "POST /api/v1/decks/e6f85b6d-05df-461f-8158-fdd3bb1a1d25/words HTTP/1.1" 500 Internal Server Error - 2.659ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 599 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b7fca200, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7fcca10}, {0x1af2b7d92570, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).AddWord(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7fcca10}, 0x1af2b7fc8f00)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:235 +0x385
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7fcca10?}, 0x1af2b7da97e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7fcca10}, 0x1af2b7fc8f00)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b7fca200}, 0x1af2b7f5d040)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b7fca200?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b7fd00f0}, 0x1af2b7f5d040)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b7fd00f0?}, 0x1af2b7da9ae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b7fd00f0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b7fb67e0, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
+[2026-10-15 12:15:06] INFO:	 127.0.0.1:53125 - "POST /api/v1/decks/2bbbfc72-9860-451c-84a1-2db4c9f4e39f/words HTTP/1.1" 500 Internal Server Error - 0.000ms
+Error response: {"detail":"database is locked (5) (SQLITE_BUSY)","error_code":"DECK_ERROR"}
+
+Stack trace:
+goroutine 590 [running]:
+runtime/debug.Stack()
+	C:/Program Files/Go/src/runtime/debug/stack.go:26 +0x5e
+mugiko/internal/modules/core/log.(*responseWriter).WriteHeader(0x1af2b7c8bd40, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:30 +0x38
+mugiko/internal/modules/core/deck/api/routes/handlers.writeError({0x7ff7992804f0, 0x1af2b7fb27e0}, {0x1af2b7fbc270, 0x24}, 0x1f4)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:349 +0x10c
+mugiko/internal/modules/core/deck/api/routes/handlers.(*DeckHandler).AddWord(0x1af2b773a050, {0x7ff7992804f0, 0x1af2b7fb27e0}, 0x1af2b7e0b680)
+	C:/Projects/MugikoGO/internal/modules/core/deck/api/routes/handlers/deck.go:235 +0x385
+net/http.HandlerFunc.ServeHTTP(0x1af2b5e30480?, {0x7ff7992804f0?, 0x1af2b7fb27e0?}, 0x1af2b800d7e0?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x7ff7992804f0, 0x1af2b7fb27e0}, 0x1af2b7e0b680)
+	C:/Program Files/Go/src/net/http/server.go:2923 +0x1cf
+mugiko/internal/modules/core/user/middleware.AuthContext.func1({0x7ff7992804c0, 0x1af2b7c8bd40}, 0x1af2b7e0b540)
+	C:/Projects/MugikoGO/internal/modules/core/user/middleware/authcontext.go:75 +0x6e2
+net/http.HandlerFunc.ServeHTTP(0x28?, {0x7ff7992804c0?, 0x1af2b7c8bd40?}, 0x7ff7992f6380?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+mugiko/internal/modules/core/log.Log.func1({0x7ff799280580, 0x1af2b7c874a0}, 0x1af2b7e0b540)
+	C:/Projects/MugikoGO/internal/modules/core/log/log.go:82 +0x1b0
+net/http.HandlerFunc.ServeHTTP(0x7ff798b2e780?, {0x7ff799280580?, 0x1af2b7c874a0?}, 0x1af2b800dae8?)
+	C:/Program Files/Go/src/net/http/server.go:2358 +0x29
+net/http.serverHandler.ServeHTTP({0x10?}, {0x7ff799280580?, 0x1af2b7c874a0?}, 0x1?)
+	C:/Program Files/Go/src/net/http/server.go:3436 +0x8e
+net/http.(*conn).serve(0x1af2b7b9b9e0, {0x7ff799280a20, 0x1af2b5d9e5d0})
+	C:/Program Files/Go/src/net/http/server.go:2157 +0x6dc
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Program Files/Go/src/net/http/server.go:3604 +0x4fd
+
