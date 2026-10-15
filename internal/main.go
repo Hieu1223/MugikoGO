@@ -7,6 +7,7 @@ import (
 	deckroutes "mugiko/internal/modules/core/deck/api/routes"
 	log "mugiko/internal/modules/core/log"
 	lookuproutes "mugiko/internal/modules/core/lookup/api/routes"
+	subtitleroutes "mugiko/internal/modules/media/subtitle/api/routes"
 	userroutes "mugiko/internal/modules/core/user/api/routes"
 	userhandlers "mugiko/internal/modules/core/user/api/routes/handlers"
 	user "mugiko/internal/modules/core/user/middleware"
@@ -55,6 +56,9 @@ func Run() {
 
 	// Register deck routes
 	deckroutes.RegisterDeckRoutes(mux, db)
+
+	// Register subtitle routes
+	subtitleroutes.RegisterSubtitleRoutes(mux, db)
 
 	// Health endpoint
 	mux.HandleFunc("GET /health", userhandlers.HealthCheck)

@@ -1,0 +1,310 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/google/uuid"
+
+	"mugiko/internal/modules/core/user/middleware"
+	"mugiko/internal/modules/media/subtitle/dto"
+	"mugiko/internal/modules/media/subtitle/service"
+)
+
+type SubtitleHandler struct {
+	svc *service.SubtitleService
+}
+
+func NewSubtitleHandler(svc *service.SubtitleService) *SubtitleHandler {
+	return &SubtitleHandler{svc: svc}
+}
+
+// Helper to get user ID from context
+func getUserID(r *http.Request) *uuid.UUID {
+	if userInfo, ok := middleware.GetUserInfo(r.Context()); ok {
+		if userID, err := uuid.Parse(userInfo.UserID); err == nil {
+			return &userID
+		}
+	}
+	return nil
+}
+
+func (h *SubtitleHandler) ListProviders(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	providers, err := h.svc.ListProviders()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(providers)
+}
+
+func (h *SubtitleHandler) CreateProvider(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Check admin role
+	userInfo, ok := middleware.GetUserInfo(r.Context())
+	if !ok || userInfo.Role != "admin" {
+		http.Error(w, "Admin required", http.StatusForbidden)
+		return
+	}
+
+	var req dto.SubtitleProviderCreate
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	provider, err := h.svc.CreateProvider(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(provider)
+}
+
+func (h *SubtitleHandler) SearchSubtitles(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	videoURL := r.URL.Query().Get("video_url")
+	if videoURL == "" {
+		http.Error(w, "video_url query parameter required", http.StatusBadRequest)
+		return
+	}
+
+	limit := 50
+	offset := 0
+	if l := r.URL.Query().Get("limit"); l != "" {
+		fmt.Sscanf(l, "%d", &limit)
+	}
+	if o := r.URL.Query().Get("offset"); o != "" {
+		fmt.Sscanf(o, "%d", &offset)
+	}
+
+	subtitles, err := h.svc.SearchSubtitles(videoURL, limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(subtitles)
+}
+
+func (h *SubtitleHandler) GetSubtitle(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	subtitleIDStr := r.PathValue("subtitle_id")
+	subtitleID, err := uuid.Parse(subtitleIDStr)
+	if err != nil {
+		http.Error(w, "Invalid subtitle ID", http.StatusBadRequest)
+		return
+	}
+
+	userID := getUserID(r)
+
+	subtitle, err := h.svc.GetSubtitle(subtitleID, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(subtitle)
+}
+
+func (h *SubtitleHandler) GetSubtitleSegments(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	subtitleIDStr := r.PathValue("subtitle_id")
+	subtitleID, err := uuid.Parse(subtitleIDStr)
+	if err != nil {
+		http.Error(w, "Invalid subtitle ID", http.StatusBadRequest)
+		return
+	}
+
+	limit := 100
+	offset := 0
+	if l := r.URL.Query().Get("limit"); l != "" {
+		fmt.Sscanf(l, "%d", &limit)
+	}
+	if o := r.URL.Query().Get("offset"); o != "" {
+		fmt.Sscanf(o, "%d", &offset)
+	}
+
+	segments, err := h.svc.GetSubtitleSegments(subtitleID, limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(segments)
+}
+
+func (h *SubtitleHandler) GetUserSettings(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := getUserID(r)
+	if userID == nil {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		return
+	}
+
+	settings, err := h.svc.GetUserSettings(*userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(settings)
+}
+
+func (h *SubtitleHandler) UpdateUserSettings(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PUT" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := getUserID(r)
+	if userID == nil {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		return
+	}
+
+	var req dto.UserSettingsUpdate
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	settings, err := h.svc.UpdateUserSettings(*userID, req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(settings)
+}
+
+func (h *SubtitleHandler) GetSubtitleUserState(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := getUserID(r)
+	if userID == nil {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		return
+	}
+
+	subtitleIDStr := r.PathValue("subtitle_id")
+	subtitleID, err := uuid.Parse(subtitleIDStr)
+	if err != nil {
+		http.Error(w, "Invalid subtitle ID", http.StatusBadRequest)
+		return
+	}
+
+	state, err := h.svc.GetSubtitleUserState(*userID, subtitleID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(state)
+}
+
+func (h *SubtitleHandler) UpdateSubtitleUserState(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PUT" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := getUserID(r)
+	if userID == nil {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		return
+	}
+
+	subtitleIDStr := r.PathValue("subtitle_id")
+	subtitleID, err := uuid.Parse(subtitleIDStr)
+	if err != nil {
+		http.Error(w, "Invalid subtitle ID", http.StatusBadRequest)
+		return
+	}
+
+	var req dto.SubtitleUserStateUpdate
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	state, err := h.svc.UpdateSubtitleUserState(*userID, subtitleID, req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(state)
+}
+
+func (h *SubtitleHandler) GetUserHistory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := getUserID(r)
+	if userID == nil {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		return
+	}
+
+	limit := 50
+	offset := 0
+	if l := r.URL.Query().Get("limit"); l != "" {
+		fmt.Sscanf(l, "%d", &limit)
+	}
+	if o := r.URL.Query().Get("offset"); o != "" {
+		fmt.Sscanf(o, "%d", &offset)
+	}
+
+	history, err := h.svc.GetUserHistory(*userID, limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(history)
+}
