@@ -37,6 +37,9 @@ func Run() {
 
 	fmt.Println("WAL mode successfully enabled!")
 
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+
 	stack := middleware.Stack(
 		log.Log,
 		user.AuthContext,

@@ -1,3 +1,6 @@
 /build
 /doc/src
 /.cache
+mugiko.db
+mugiko.db-shm
+mugiko.db-wal
