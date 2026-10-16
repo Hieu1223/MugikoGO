@@ -1,10 +1,12 @@
 package service
 
 import (
-	"github.com/google/uuid"
+	"errors"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 	"mugiko/internal/modules/core/user/persistent"
+
+	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -73,7 +75,7 @@ func (s *UserService) GetUserDetail(userID uuid.UUID) (*dto.AuthData, *dto.UserP
 func (s *UserService) UpdateUserRole(userID uuid.UUID, role dto.Role) error {
 	// Validate role
 	if role != dto.RoleAnonymous && role != dto.RoleUser && role != dto.RoleAdmin {
-		return exception.ErrInvalidRole
+		return errors.New(exception.ErrInvalidRole)
 	}
 	return s.repo.UpdateUserRole(userID, role)
 }

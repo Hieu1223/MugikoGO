@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"mugiko/internal/common/api"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 	"mugiko/internal/modules/core/user/service"
@@ -13,16 +14,16 @@ import (
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, exception.ErrInvalidTokenFormat)
+		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 		return
 	}
 
 	authHeader := r.Header.Get("Authorization")
 	fmt.Printf("RegisterUser: authHeader=%s\n", authHeader)
-	token := extractBearerToken(authHeader)
+	token := api.ExtractBearerToken(authHeader)
 	fmt.Printf("RegisterUser: token=%s\n", token)
 	if token == "" {
-		writeError(w, exception.ErrInvalidTokenFormat)
+		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 		return
 	}
 
@@ -35,11 +36,14 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	authService := service.NewAuthService()
 	resp, err := authService.RegisterUser(req, firebaseUser)
 	if err != nil {
-		if appErr, ok := exception.IsAppError(err); ok {
-			writeError(w, appErr)
-		} else {
-			writeError(w, exception.ErrInvalidToken)
-		}
+		// Without a custom error struct, we default to your original fallback.
+		// If you want to map specific service errors, you can check err.Error() here:
+		// if err.Error() == "user not found" {
+		//     api.WriteError(w, exception.MsgUserNotFound, exception.StatusUserNotFound)
+		//     return
+		// }
+
+		api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
 		return
 	}
 

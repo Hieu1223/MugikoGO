@@ -21,6 +21,9 @@ GOMODCACHE ?= $(PROJECT_ROOT)/.cache/go-mod
 export GOCACHE
 export GOMODCACHE
 
+
+
+
 # ==============================================================================
 # Phony Targets
 # ==============================================================================
@@ -57,8 +60,8 @@ run-dev: build
 
 setup:
 	@echo "Running database setup..."
-	$(PYTHON) $(SCRIPTS_DIR)/run_sql.py -f $(PROJECT_ROOT)/schema.sql
-	$(PYTHON) $(SCRIPTS_DIR)/run_sql.py -f $(PROJECT_ROOT)/seed.sql
+	$(PYTHON) $(SCRIPTS_DIR)/common/run_sql.py -f $(SCRIPTS_DIR)/setup/schema.sql
+	$(PYTHON) $(SCRIPTS_DIR)/common/run_sql.py -f $(SCRIPTS_DIR)/setup/seed.sql
 
 # ==============================================================================
 # Cleanup
@@ -68,3 +71,7 @@ clean:
 	if exist build rmdir /s /q build
 	if exist .cache rmdir /s /q .cache
 	if exist backup rmdir /s /q backup
+
+
+reset-db:
+	$(PYTHON) $(SCRIPTS_DIR)/reset-db.py

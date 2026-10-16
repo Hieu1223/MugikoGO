@@ -2,6 +2,8 @@ package persistent
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 
 	"mugiko/internal/common/persistent"
@@ -19,26 +21,27 @@ func NewUserRepository() *UserRepository {
 }
 
 func (r *UserRepository) CreateUserAuth(userID uuid.UUID, role dto.Role, authType dto.AuthType, authID string) error {
-	query := `INSERT INTO user_auths (user_id, role, auth_type, auth_id, is_active) VALUES (?, ?, ?, ?, 1)`
-	_, err := r.db.Exec(query, userID.String(), role, authType, authID)
+	now := time.Now().UTC().Format(time.RFC3339)
+	query := `INSERT INTO users (user_id, role, auth_type, auth_id, is_active, joined_at) 
+	          VALUES ($1, $2, $3, $4, 1, $5)`
+	_, err := r.db.Exec(query, userID.String(), role, authType, authID, now)
 	return err
 }
 
 func (r *UserRepository) CreateUserProfile(userID uuid.UUID, name, bio, email string) error {
-	query := `INSERT INTO user_profiles (user_id, name, bio, email) VALUES (?, ?, ?, ?)`
+	query := `INSERT INTO user_profiles (user_id, name, bio, email) VALUES ($1, $2, $3, $4)`
 	_, err := r.db.Exec(query, userID.String(), name, bio, email)
 	return err
 }
 
 func (r *UserRepository) GetUserAuthByAuthID(authType dto.AuthType, authID string) (*dto.AuthData, error) {
-	query := `SELECT user_id, role, joined_at, auth_id, is_active FROM user_auths WHERE auth_type = ? AND auth_id = ?`
+	query := `SELECT user_id, role, joined_at, auth_id, is_active FROM users WHERE auth_type = $1 AND auth_id = $2`
 	row := r.db.QueryRow(query, authType, authID)
 
-	var userIDStr, roleStr, authIDStr string
-	var joinedAt time.Time
-	var isActive bool
+	var userIDStr, roleStr, authIDStr, joinedAtStr string
+	var isActiveInt int // Schema uses INTEGER for is_active
 
-	err := row.Scan(&userIDStr, &roleStr, &joinedAt, &authIDStr, &isActive)
+	err := row.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveInt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -47,24 +50,28 @@ func (r *UserRepository) GetUserAuthByAuthID(authType dto.AuthType, authID strin
 	}
 
 	userID, _ := uuid.Parse(userIDStr)
+	joinedAt, err := time.Parse(time.RFC3339, joinedAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse joined_at: %w", err)
+	}
+
 	return &dto.AuthData{
 		UserID:   userID,
 		Role:     dto.Role(roleStr),
 		JoinedAt: joinedAt,
 		AuthID:   authIDStr,
-		IsActive: isActive,
+		IsActive: isActiveInt == 1,
 	}, nil
 }
 
 func (r *UserRepository) GetUserAuthByID(userID uuid.UUID) (*dto.AuthData, error) {
-	query := `SELECT user_id, role, joined_at, auth_id, is_active FROM user_auths WHERE user_id = ?`
+	query := `SELECT user_id, role, joined_at, auth_id, is_active FROM users WHERE user_id = $1`
 	row := r.db.QueryRow(query, userID.String())
 
-	var userIDStr, roleStr, authIDStr string
-	var joinedAt time.Time
-	var isActive bool
+	var userIDStr, roleStr, authIDStr, joinedAtStr string
+	var isActiveInt int
 
-	err := row.Scan(&userIDStr, &roleStr, &joinedAt, &authIDStr, &isActive)
+	err := row.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveInt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -72,17 +79,22 @@ func (r *UserRepository) GetUserAuthByID(userID uuid.UUID) (*dto.AuthData, error
 		return nil, err
 	}
 
+	joinedAt, err := time.Parse(time.RFC3339, joinedAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse joined_at: %w", err)
+	}
+
 	return &dto.AuthData{
 		UserID:   userID,
 		Role:     dto.Role(roleStr),
 		JoinedAt: joinedAt,
 		AuthID:   authIDStr,
-		IsActive: isActive,
+		IsActive: isActiveInt == 1,
 	}, nil
 }
 
 func (r *UserRepository) GetUserProfileByID(userID uuid.UUID) (*dto.UserProfileResponse, error) {
-	query := `SELECT name, bio, email FROM user_profiles WHERE user_id = ?`
+	query := `SELECT name, bio, email FROM user_profiles WHERE user_id = $1`
 	row := r.db.QueryRow(query, userID.String())
 
 	var name, bio, email sql.NullString
@@ -103,32 +115,34 @@ func (r *UserRepository) GetUserProfileByID(userID uuid.UUID) (*dto.UserProfileR
 }
 
 func (r *UserRepository) UpdateUserProfile(userID uuid.UUID, name, bio, email *string) error {
-	query := `UPDATE user_profiles SET `
-	args := []any{}
 	setClauses := []string{}
+	args := []any{}
+	paramIdx := 1
 
 	if name != nil {
-		setClauses = append(setClauses, "name = ?")
+		setClauses = append(setClauses, fmt.Sprintf("name = $%d", paramIdx))
 		args = append(args, *name)
+		paramIdx++
 	}
 	if bio != nil {
-		setClauses = append(setClauses, "bio = ?")
+		setClauses = append(setClauses, fmt.Sprintf("bio = $%d", paramIdx))
 		args = append(args, *bio)
+		paramIdx++
 	}
 	if email != nil {
-		setClauses = append(setClauses, "email = ?")
+		setClauses = append(setClauses, fmt.Sprintf("email = $%d", paramIdx))
 		args = append(args, *email)
+		paramIdx++
 	}
 
 	if len(setClauses) == 0 {
 		return nil
 	}
 
-	query += setClauses[0]
-	for i := 1; i < len(setClauses); i++ {
-		query += ", " + setClauses[i]
-	}
-	query += " WHERE user_id = ?"
+	// Build query: UPDATE user_profiles SET col=$1, col2=$2 ... WHERE user_id=$N
+	query := fmt.Sprintf(`UPDATE user_profiles SET %s WHERE user_id = $%d`,
+		strings.Join(setClauses, ", "), paramIdx)
+
 	args = append(args, userID.String())
 
 	_, err := r.db.Exec(query, args...)
@@ -136,7 +150,7 @@ func (r *UserRepository) UpdateUserProfile(userID uuid.UUID, name, bio, email *s
 }
 
 func (r *UserRepository) ListUsers(limit, offset int) ([]*dto.AuthData, error) {
-	query := `SELECT user_id, role, joined_at, auth_id, is_active FROM user_auths ORDER BY joined_at DESC LIMIT ? OFFSET ?`
+	query := `SELECT user_id, role, joined_at, auth_id, is_active FROM users ORDER BY joined_at DESC LIMIT $1 OFFSET $2`
 	rows, err := r.db.Query(query, limit, offset)
 	if err != nil {
 		return nil, err
@@ -145,22 +159,26 @@ func (r *UserRepository) ListUsers(limit, offset int) ([]*dto.AuthData, error) {
 
 	var users []*dto.AuthData
 	for rows.Next() {
-		var userIDStr, roleStr, authIDStr string
-		var joinedAt time.Time
-		var isActive bool
+		var userIDStr, roleStr, authIDStr, joinedAtStr string
+		var isActiveInt int
 
-		err := rows.Scan(&userIDStr, &roleStr, &joinedAt, &authIDStr, &isActive)
+		err := rows.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveInt)
 		if err != nil {
 			return nil, err
 		}
 
 		userID, _ := uuid.Parse(userIDStr)
+		joinedAt, err := time.Parse(time.RFC3339, joinedAtStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse joined_at: %w", err)
+		}
+
 		users = append(users, &dto.AuthData{
 			UserID:   userID,
 			Role:     dto.Role(roleStr),
 			JoinedAt: joinedAt,
 			AuthID:   authIDStr,
-			IsActive: isActive,
+			IsActive: isActiveInt == 1,
 		})
 	}
 	if err := rows.Err(); err != nil {
@@ -180,19 +198,19 @@ func (r *UserRepository) GetUserWithProfile(userID uuid.UUID) (*dto.AuthData, *d
 }
 
 func (r *UserRepository) UpdateUserRole(userID uuid.UUID, role dto.Role) error {
-	query := `UPDATE user_auths SET role = ? WHERE user_id = ?`
+	query := `UPDATE users SET role = $1 WHERE user_id = $2`
 	_, err := r.db.Exec(query, role, userID.String())
 	return err
 }
 
 func (r *UserRepository) DeactivateUser(userID uuid.UUID) error {
-	query := `UPDATE user_auths SET is_active = 0 WHERE user_id = ?`
+	query := `UPDATE users SET is_active = 0 WHERE user_id = $1`
 	_, err := r.db.Exec(query, userID.String())
 	return err
 }
 
 func (r *UserRepository) AdminExists() (bool, error) {
-	query := `SELECT 1 FROM user_auths WHERE role = 'admin' LIMIT 1`
+	query := `SELECT 1 FROM users WHERE role = 'admin' LIMIT 1`
 	row := r.db.QueryRow(query)
 	var exists int
 	err := row.Scan(&exists)
@@ -203,7 +221,7 @@ func (r *UserRepository) AdminExists() (bool, error) {
 }
 
 func (r *UserRepository) CountUsers() (int, error) {
-	query := `SELECT COUNT(*) FROM user_auths`
+	query := `SELECT COUNT(*) FROM users`
 	row := r.db.QueryRow(query)
 	var count int
 	err := row.Scan(&count)

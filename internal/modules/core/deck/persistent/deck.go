@@ -21,7 +21,7 @@ func (r *DeckRepository) CreateDeck(ownerID uuid.UUID, name string) (*dto.Deck, 
 
 	_, err := r.db.Exec(`
 		INSERT INTO decks (id, owner_id, name, created_at, updated_at)
-		VALUES (?, ?, ?, datetime('now'), datetime('now'))
+		VALUES ($1, $2, $3, NOW() AT TIME ZONE 'UTC', NOW() AT TIME ZONE 'UTC')
 	`, deckID.String(), ownerID.String(), name)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (r *DeckRepository) GetDeck(deckID uuid.UUID) (*dto.Deck, error) {
 	err := r.db.QueryRow(`
 		SELECT id, owner_id, name, created_at, updated_at
 		FROM decks
-		WHERE id = ?
+		WHERE id = $1
 	`, deckID.String()).Scan(&deck.ID, &deck.OwnerID, &deck.Name, &deck.CreatedAt, &deck.UpdatedAt)
 
 	if err == sql.ErrNoRows {
@@ -52,7 +52,7 @@ func (r *DeckRepository) ListDecks(ownerID uuid.UUID, page, pageSize int) ([]dto
 	offset := (page - 1) * pageSize
 
 	var total int64
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM decks WHERE owner_id = ?`, ownerID.String()).Scan(&total)
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM decks WHERE owner_id = $1`, ownerID.String()).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -60,9 +60,9 @@ func (r *DeckRepository) ListDecks(ownerID uuid.UUID, page, pageSize int) ([]dto
 	rows, err := r.db.Query(`
 		SELECT id, owner_id, name, created_at, updated_at
 		FROM decks
-		WHERE owner_id = ?
+		WHERE owner_id = $1
 		ORDER BY created_at DESC
-		LIMIT ? OFFSET ?
+		LIMIT $2 OFFSET $3
 	`, ownerID.String(), pageSize, offset)
 	if err != nil {
 		return nil, 0, err
@@ -86,8 +86,8 @@ func (r *DeckRepository) ListDecks(ownerID uuid.UUID, page, pageSize int) ([]dto
 
 func (r *DeckRepository) UpdateDeck(deckID uuid.UUID, name string) (*dto.Deck, error) {
 	_, err := r.db.Exec(`
-		UPDATE decks SET name = ?, updated_at = datetime('now')
-		WHERE id = ?
+		UPDATE decks SET name = $1, updated_at = NOW() AT TIME ZONE 'UTC'
+		WHERE id = $2
 	`, name, deckID.String())
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (r *DeckRepository) UpdateDeck(deckID uuid.UUID, name string) (*dto.Deck, e
 }
 
 func (r *DeckRepository) DeleteDeck(deckID uuid.UUID) error {
-	_, err := r.db.Exec(`DELETE FROM decks WHERE id = ?`, deckID.String())
+	_, err := r.db.Exec(`DELETE FROM decks WHERE id = $1`, deckID.String())
 	return err
 }
 
@@ -105,7 +105,7 @@ func (r *DeckRepository) AddWordToDeck(deckID uuid.UUID, word, meaning string) (
 	wordID := uuid.New()
 	_, err := r.db.Exec(`
 		INSERT INTO deck_words (id, deck_id, word, meaning, created_at, updated_at)
-		VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+		VALUES ($1, $2, $3, $4, NOW() AT TIME ZONE 'UTC', NOW() AT TIME ZONE 'UTC')
 	`, wordID.String(), deckID.String(), word, meaning)
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func (r *DeckRepository) GetDeckWord(wordID uuid.UUID) (*dto.DeckWord, error) {
 	err := r.db.QueryRow(`
 		SELECT id, deck_id, word, meaning, created_at, updated_at
 		FROM deck_words
-		WHERE id = ?
+		WHERE id = $1
 	`, wordID.String()).Scan(&dw.ID, &dw.DeckID, &dw.Word, &dw.Meaning, &dw.CreatedAt, &dw.UpdatedAt)
 
 	if err == sql.ErrNoRows {
@@ -136,7 +136,7 @@ func (r *DeckRepository) ListDeckWords(deckID uuid.UUID, page, pageSize int) ([]
 	offset := (page - 1) * pageSize
 
 	var total int64
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM deck_words WHERE deck_id = ?`, deckID.String()).Scan(&total)
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM deck_words WHERE deck_id = $1`, deckID.String()).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -144,9 +144,9 @@ func (r *DeckRepository) ListDeckWords(deckID uuid.UUID, page, pageSize int) ([]
 	rows, err := r.db.Query(`
 		SELECT id, deck_id, word, meaning, created_at, updated_at
 		FROM deck_words
-		WHERE deck_id = ?
+		WHERE deck_id = $1
 		ORDER BY created_at DESC
-		LIMIT ? OFFSET ?
+		LIMIT $2 OFFSET $3
 	`, deckID.String(), pageSize, offset)
 	if err != nil {
 		return nil, 0, err
@@ -172,7 +172,7 @@ func (r *DeckRepository) UpdateDeckWord(wordID uuid.UUID, word, meaning *string)
 	var current dto.DeckWord
 	err := r.db.QueryRow(`
 		SELECT id, deck_id, word, meaning, created_at, updated_at
-		FROM deck_words WHERE id = ?
+		FROM deck_words WHERE id = $1
 	`, wordID.String()).Scan(&current.ID, &current.DeckID, &current.Word, &current.Meaning, &current.CreatedAt, &current.UpdatedAt)
 	if err != nil {
 		return nil, err
@@ -188,8 +188,8 @@ func (r *DeckRepository) UpdateDeckWord(wordID uuid.UUID, word, meaning *string)
 	}
 
 	_, err = r.db.Exec(`
-		UPDATE deck_words SET word = ?, meaning = ?, updated_at = datetime('now')
-		WHERE id = ?
+		UPDATE deck_words SET word = $1, meaning = $2, updated_at = NOW() AT TIME ZONE 'UTC'
+		WHERE id = $3
 	`, newWord, newMeaning, wordID.String())
 	if err != nil {
 		return nil, err
@@ -199,6 +199,6 @@ func (r *DeckRepository) UpdateDeckWord(wordID uuid.UUID, word, meaning *string)
 }
 
 func (r *DeckRepository) DeleteDeckWord(wordID uuid.UUID) error {
-	_, err := r.db.Exec(`DELETE FROM deck_words WHERE id = ?`, wordID.String())
+	_, err := r.db.Exec(`DELETE FROM deck_words WHERE id = $1`, wordID.String())
 	return err
 }

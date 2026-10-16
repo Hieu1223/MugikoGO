@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 	"mugiko/internal/modules/core/user/persistent"
+
+	"github.com/google/uuid"
 )
 
 type AuthService struct {
@@ -79,7 +80,7 @@ func (s *AuthService) RegisterUser(request dto.RegisterRequest, firebaseUser *Fi
 		return nil, err
 	}
 	if existing != nil {
-		return nil, exception.ErrUserAlreadyExists
+		return nil, errors.New(exception.MsgUserExists)
 	}
 
 	userID := uuid.New()

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"mugiko/internal/common/api"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 	"mugiko/internal/modules/core/user/persistent"
@@ -23,6 +24,7 @@ func AuthContext(next http.Handler) http.Handler {
 
 		var auth *dto.AuthData
 		var newAnonymousToken string
+		var err error
 
 		if strings.HasPrefix(authHeader, "Bearer ") {
 			token := strings.TrimPrefix(authHeader, "Bearer ")
@@ -34,7 +36,7 @@ func AuthContext(next http.Handler) http.Handler {
 				repo := persistent.NewUserRepository()
 				auth, _ = repo.GetUserAuthByAuthID(dto.AuthTypeFirebase, firebaseToken)
 				if auth == nil || !auth.IsActive {
-					writeError(w, exception.ErrInvalidToken)
+					api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
 					return
 				}
 
@@ -43,46 +45,53 @@ func AuthContext(next http.Handler) http.Handler {
 				fmt.Printf("AuthContext: calling VerifyAdminToken with adminToken=%s\n", adminToken)
 				auth, _ = authService.VerifyAdminToken(adminToken)
 				if auth == nil {
-					writeError(w, exception.ErrInvalidToken)
+					api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
 					return
 				}
 
 			case strings.HasPrefix(token, "anonymous-"):
 				anonToken := strings.TrimPrefix(token, "anonymous-")
-				auth, _ = authService.VerifyAnonymousToken(anonToken)
+				auth, err = authService.VerifyAnonymousToken(anonToken)
+				if err != nil {
+					fmt.Print(err.Error())
+					api.WriteError(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 				if auth == nil {
-					writeError(w, exception.ErrInvalidToken)
+					api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
 					return
 				}
 
 			default:
 				fmt.Printf("AuthContext: DEFAULT CASE - token doesn't match any prefix\n")
-				writeError(w, exception.ErrInvalidTokenFormat)
+				api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 				return
 			}
 		} else {
 			// No Bearer token: create new anonymous user
-			auth, newAnonymousToken, _ = authService.CreateAnonymousUser()
+			auth, newAnonymousToken, err = authService.CreateAnonymousUser()
+			if err != nil {
+				api.WriteError(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 			if auth == nil {
-				writeError(w, exception.ErrInternalServer)
+				api.WriteError(w, exception.MsgAnonymousAuthNotCreated, http.StatusInternalServerError)
 				return
 			}
 		}
 
+		// Attach auth to context
 		ctx := context.WithValue(r.Context(), AuthContextKey, auth)
-		rw := &responseWriter{ResponseWriter: w}
-		rw.Header().Add("X-Auth-Token", newAnonymousToken)
-		next.ServeHTTP(rw, r.WithContext(ctx))
+		r = r.WithContext(ctx)
 
 		// If we created a new anonymous user, add the token to response header
 		if newAnonymousToken != "" {
-			rw.Header().Set("X-Auth-Token", newAnonymousToken)
+			w.Header().Set("Authorization", newAnonymousToken)
 		}
-	})
-}
 
-type responseWriter struct {
-	http.ResponseWriter
+		// Proceed to the next handler
+		next.ServeHTTP(w, r)
+	})
 }
 
 func GetAuthContext(r *http.Request) *dto.AuthData {
@@ -105,10 +114,4 @@ func GetUserInfo(ctx context.Context) (UserInfo, bool) {
 		}, true
 	}
 	return UserInfo{}, false
-}
-
-func writeError(w http.ResponseWriter, err *exception.AppError) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(err.Status)
-	w.Write([]byte(`{"error_code":"` + err.Code + `","detail":"` + err.Message + `"}`))
 }

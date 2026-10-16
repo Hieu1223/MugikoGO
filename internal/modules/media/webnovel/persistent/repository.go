@@ -18,7 +18,7 @@ func NewNovelRepository(db *sql.DB) *NovelRepository {
 }
 
 func (r *NovelRepository) GetBySourceID(source dto.SourceEnum, sourceID string) (*Novel, error) {
-	row := r.db.QueryRow(`SELECT id, source, source_id, url, title, author, synopsis, added_by, created_at FROM novels WHERE source = ? AND source_id = ?`, source, sourceID)
+	row := r.db.QueryRow(`SELECT id, source, source_id, url, title, author, synopsis, added_by, created_at FROM novels WHERE source = $1 AND source_id = $2`, source, sourceID)
 	var n Novel
 	var createdAt string
 	if err := row.Scan(&n.ID, &n.Source, &n.SourceID, &n.URL, &n.Title, &n.Author, &n.Synopsis, &n.AddedBy, &createdAt); err != nil {
@@ -29,7 +29,7 @@ func (r *NovelRepository) GetBySourceID(source dto.SourceEnum, sourceID string) 
 }
 
 func (r *NovelRepository) GetByID(novelID uuid.UUID) (*Novel, error) {
-	row := r.db.QueryRow(`SELECT id, source, source_id, url, title, author, synopsis, added_by, created_at FROM novels WHERE id = ?`, novelID.String())
+	row := r.db.QueryRow(`SELECT id, source, source_id, url, title, author, synopsis, added_by, created_at FROM novels WHERE id = $1`, novelID.String())
 	var n Novel
 	var createdAt string
 	if err := row.Scan(&n.ID, &n.Source, &n.SourceID, &n.URL, &n.Title, &n.Author, &n.Synopsis, &n.AddedBy, &createdAt); err != nil {
@@ -41,7 +41,7 @@ func (r *NovelRepository) GetByID(novelID uuid.UUID) (*Novel, error) {
 
 func (r *NovelRepository) Create(n *Novel) error {
 	now := time.Now().UTC()
-	_, err := r.db.Exec(`INSERT INTO novels (id, source, source_id, url, title, author, synopsis, added_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+	_, err := r.db.Exec(`INSERT INTO novels (id, source, source_id, url, title, author, synopsis, added_by, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		n.ID.String(), n.Source, n.SourceID, n.URL, n.Title, n.Author, n.Synopsis, n.AddedBy.String(), now.Format(time.RFC3339))
 	if err != nil {
 		return err
@@ -52,13 +52,13 @@ func (r *NovelRepository) Create(n *Novel) error {
 
 func (r *NovelRepository) ListByUser(userID uuid.UUID, page, pageSize int) ([]*Novel, int, error) {
 	var total int
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM novels WHERE added_by = ?`, userID.String()).Scan(&total)
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM novels WHERE added_by = $1`, userID.String()).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	offset := (page - 1) * pageSize
-	rows, err := r.db.Query(`SELECT id, source, source_id, url, title, author, synopsis, added_by, created_at FROM novels WHERE added_by = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`, userID.String(), pageSize, offset)
+	rows, err := r.db.Query(`SELECT id, source, source_id, url, title, author, synopsis, added_by, created_at FROM novels WHERE added_by = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`, userID.String(), pageSize, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -89,7 +89,7 @@ func (r *NovelRepository) ListAll(page, pageSize int) ([]*Novel, int, error) {
 	}
 
 	offset := (page - 1) * pageSize
-	rows, err := r.db.Query(`SELECT id, source, source_id, url, title, author, synopsis, added_by, created_at FROM novels ORDER BY created_at DESC LIMIT ? OFFSET ?`, pageSize, offset)
+	rows, err := r.db.Query(`SELECT id, source, source_id, url, title, author, synopsis, added_by, created_at FROM novels ORDER BY created_at DESC LIMIT $1 OFFSET $2`, pageSize, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -135,7 +135,7 @@ func NewChapterRepository(db *sql.DB) *ChapterRepository {
 }
 
 func (r *ChapterRepository) GetByID(chapterID uuid.UUID) (*Chapter, error) {
-	row := r.db.QueryRow(`SELECT id, novel_id, idx, title, created_at FROM chapters WHERE id = ?`, chapterID.String())
+	row := r.db.QueryRow(`SELECT id, novel_id, idx, title, created_at FROM chapters WHERE id = $1`, chapterID.String())
 	var c Chapter
 	var createdAt string
 	if err := row.Scan(&c.ID, &c.NovelID, &c.Idx, &c.Title, &createdAt); err != nil {
@@ -146,7 +146,7 @@ func (r *ChapterRepository) GetByID(chapterID uuid.UUID) (*Chapter, error) {
 }
 
 func (r *ChapterRepository) GetByNovelAndIdx(novelID uuid.UUID, idx int) (*Chapter, error) {
-	row := r.db.QueryRow(`SELECT id, novel_id, idx, title, created_at FROM chapters WHERE novel_id = ? AND idx = ?`, novelID.String(), idx)
+	row := r.db.QueryRow(`SELECT id, novel_id, idx, title, created_at FROM chapters WHERE novel_id = $1 AND idx = $2`, novelID.String(), idx)
 	var c Chapter
 	var createdAt string
 	if err := row.Scan(&c.ID, &c.NovelID, &c.Idx, &c.Title, &createdAt); err != nil {
@@ -158,7 +158,7 @@ func (r *ChapterRepository) GetByNovelAndIdx(novelID uuid.UUID, idx int) (*Chapt
 
 func (r *ChapterRepository) Create(c *Chapter) error {
 	now := time.Now().UTC()
-	_, err := r.db.Exec(`INSERT INTO chapters (id, novel_id, idx, title, created_at) VALUES (?, ?, ?, ?, ?)`,
+	_, err := r.db.Exec(`INSERT INTO chapters (id, novel_id, idx, title, created_at) VALUES ($1, $2, $3, $4, $5)`,
 		c.ID.String(), c.NovelID.String(), c.Idx, c.Title, now.Format(time.RFC3339))
 	if err != nil {
 		return err
@@ -168,7 +168,7 @@ func (r *ChapterRepository) Create(c *Chapter) error {
 }
 
 func (r *ChapterRepository) ListByNovel(novelID uuid.UUID) ([]*Chapter, error) {
-	rows, err := r.db.Query(`SELECT id, novel_id, idx, title, created_at FROM chapters WHERE novel_id = ? ORDER BY idx`, novelID.String())
+	rows, err := r.db.Query(`SELECT id, novel_id, idx, title, created_at FROM chapters WHERE novel_id = $1 ORDER BY idx`, novelID.String())
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func NewParagraphRepository(db *sql.DB) *ParagraphRepository {
 func (r *ParagraphRepository) CreateBatch(chapterID uuid.UUID, paragraphs []*Paragraph) error {
 	now := time.Now().UTC()
 	for _, p := range paragraphs {
-		_, err := r.db.Exec(`INSERT INTO paragraphs (id, chapter_id, idx, text, words, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+		_, err := r.db.Exec(`INSERT INTO paragraphs (id, chapter_id, idx, text, words, created_at) VALUES ($1, $2, $3, $4, $5, $6)`,
 			p.ID.String(), chapterID.String(), p.Idx, p.Text, p.Words, now.Format(time.RFC3339))
 		if err != nil {
 			return err
@@ -219,7 +219,7 @@ func (r *ParagraphRepository) CreateBatch(chapterID uuid.UUID, paragraphs []*Par
 }
 
 func (r *ParagraphRepository) GetByChapter(chapterID uuid.UUID) ([]*Paragraph, error) {
-	rows, err := r.db.Query(`SELECT id, chapter_id, idx, text, words, created_at FROM paragraphs WHERE chapter_id = ? ORDER BY idx`, chapterID.String())
+	rows, err := r.db.Query(`SELECT id, chapter_id, idx, text, words, created_at FROM paragraphs WHERE chapter_id = $1 ORDER BY idx`, chapterID.String())
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func (r *ParagraphRepository) GetByChapter(chapterID uuid.UUID) ([]*Paragraph, e
 }
 
 func (r *ParagraphRepository) GetByChapterPaginated(chapterID uuid.UUID, limit, offset int) ([]*Paragraph, error) {
-	rows, err := r.db.Query(`SELECT id, chapter_id, idx, text, words, created_at FROM paragraphs WHERE chapter_id = ? ORDER BY idx LIMIT ? OFFSET ?`, chapterID.String(), limit, offset)
+	rows, err := r.db.Query(`SELECT id, chapter_id, idx, text, words, created_at FROM paragraphs WHERE chapter_id = $1 ORDER BY idx LIMIT $2 OFFSET $3`, chapterID.String(), limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +260,7 @@ func (r *ParagraphRepository) GetByChapterPaginated(chapterID uuid.UUID, limit, 
 
 func (r *ParagraphRepository) CountByChapter(chapterID uuid.UUID) (int, error) {
 	var count int
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM paragraphs WHERE chapter_id = ?`, chapterID.String()).Scan(&count)
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM paragraphs WHERE chapter_id = $1`, chapterID.String()).Scan(&count)
 	return count, err
 }
 

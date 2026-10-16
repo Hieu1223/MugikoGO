@@ -19,7 +19,7 @@ func (r *MangaRepository) CreateProvider(ownerID uuid.UUID, name, baseURL string
 	now := time.Now().UTC()
 	_, err := r.db.Exec(
 		`INSERT INTO manga_providers (id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		id.String(), ownerID.String(), name, baseURL, string(visibility), isBuiltin, now.Format(time.RFC3339), now.Format(time.RFC3339),
 	)
 	if err != nil {
@@ -33,7 +33,7 @@ func (r *MangaRepository) CreateProvider(ownerID uuid.UUID, name, baseURL string
 }
 
 func (r *MangaRepository) GetProvider(providerID uuid.UUID) (*MangaProvider, error) {
-	row := r.db.QueryRow(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE id = ?`, providerID.String())
+	row := r.db.QueryRow(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE id = $1`, providerID.String())
 	var p MangaProvider
 	var vis string
 	var createdAt, updatedAt string
@@ -47,7 +47,7 @@ func (r *MangaRepository) GetProvider(providerID uuid.UUID) (*MangaProvider, err
 }
 
 func (r *MangaRepository) GetProviderByOwnerAndURL(ownerID uuid.UUID, baseURL string) (*MangaProvider, error) {
-	row := r.db.QueryRow(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE owner_id = ? AND base_url = ?`, ownerID.String(), baseURL)
+	row := r.db.QueryRow(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE owner_id = $1 AND base_url = $2`, ownerID.String(), baseURL)
 	var p MangaProvider
 	var vis string
 	var createdAt, updatedAt string
@@ -61,7 +61,7 @@ func (r *MangaRepository) GetProviderByOwnerAndURL(ownerID uuid.UUID, baseURL st
 }
 
 func (r *MangaRepository) GetUserProviders(userID uuid.UUID) ([]*MangaProvider, error) {
-	rows, err := r.db.Query(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE owner_id = ? ORDER BY created_at DESC`, userID.String())
+	rows, err := r.db.Query(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE owner_id = $1 ORDER BY created_at DESC`, userID.String())
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (r *MangaRepository) GetPublicProviders(page, pageSize int) ([]*MangaProvid
 	}
 	// Query
 	offset := (page - 1) * pageSize
-	rows, err := r.db.Query(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE visibility = 'public' AND is_builtin = 0 ORDER BY created_at DESC LIMIT ? OFFSET ?`, pageSize, offset)
+	rows, err := r.db.Query(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE visibility = 'public' AND is_builtin = 0 ORDER BY created_at DESC LIMIT $1 OFFSET $2`, pageSize, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -88,7 +88,7 @@ func (r *MangaRepository) GetPublicProviders(page, pageSize int) ([]*MangaProvid
 }
 
 func (r *MangaRepository) GetSubscribableProviders(userID uuid.UUID) ([]*MangaProvider, error) {
-	rows, err := r.db.Query(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE visibility = 'public' OR owner_id = ? ORDER BY created_at DESC`, userID.String())
+	rows, err := r.db.Query(`SELECT id, owner_id, name, base_url, visibility, is_builtin, created_at, updated_at FROM manga_providers WHERE visibility = 'public' OR owner_id = $1 ORDER BY created_at DESC`, userID.String())
 	if err != nil {
 		return nil, err
 	}
@@ -98,31 +98,31 @@ func (r *MangaRepository) GetSubscribableProviders(userID uuid.UUID) ([]*MangaPr
 
 func (r *MangaRepository) UpdateProvider(provider *MangaProvider) error {
 	now := time.Now().UTC()
-	_, err := r.db.Exec(`UPDATE manga_providers SET name = ?, base_url = ?, visibility = ?, updated_at = ? WHERE id = ?`,
+	_, err := r.db.Exec(`UPDATE manga_providers SET name = $1, base_url = $2, visibility = $3, updated_at = $4 WHERE id = $5`,
 		provider.Name, provider.BaseURL, string(provider.Visibility), now.Format(time.RFC3339), provider.ID.String())
 	return err
 }
 
 func (r *MangaRepository) DeleteProvider(providerID uuid.UUID) error {
-	_, err := r.db.Exec(`DELETE FROM manga_providers WHERE id = ?`, providerID.String())
+	_, err := r.db.Exec(`DELETE FROM manga_providers WHERE id = $1`, providerID.String())
 	return err
 }
 
 // Subscription methods
 func (r *MangaRepository) Subscribe(userID, providerID uuid.UUID) error {
 	now := time.Now().UTC()
-	_, err := r.db.Exec(`INSERT OR REPLACE INTO manga_subscriptions (user_id, provider_id, created_at) VALUES (?, ?, ?)`,
+	_, err := r.db.Exec(`INSERT OR REPLACE INTO manga_subscriptions (user_id, provider_id, created_at) VALUES ($1, $2, $3)`,
 		userID.String(), providerID.String(), now.Format(time.RFC3339))
 	return err
 }
 
 func (r *MangaRepository) Unsubscribe(userID, providerID uuid.UUID) error {
-	_, err := r.db.Exec(`DELETE FROM manga_subscriptions WHERE user_id = ? AND provider_id = ?`, userID.String(), providerID.String())
+	_, err := r.db.Exec(`DELETE FROM manga_subscriptions WHERE user_id = $1 AND provider_id = $2`, userID.String(), providerID.String())
 	return err
 }
 
 func (r *MangaRepository) GetSubscription(userID, providerID uuid.UUID) (*MangaSubscription, error) {
-	row := r.db.QueryRow(`SELECT user_id, provider_id, created_at FROM manga_subscriptions WHERE user_id = ? AND provider_id = ?`, userID.String(), providerID.String())
+	row := r.db.QueryRow(`SELECT user_id, provider_id, created_at FROM manga_subscriptions WHERE user_id = $1 AND provider_id = $2`, userID.String(), providerID.String())
 	var s MangaSubscription
 	var createdAt string
 	if err := row.Scan(&s.UserID, &s.ProviderID, &createdAt); err != nil {
@@ -133,7 +133,7 @@ func (r *MangaRepository) GetSubscription(userID, providerID uuid.UUID) (*MangaS
 }
 
 func (r *MangaRepository) GetUserSubscriptions(userID uuid.UUID) ([]*MangaSubscription, error) {
-	rows, err := r.db.Query(`SELECT user_id, provider_id, created_at FROM manga_subscriptions WHERE user_id = ? ORDER BY created_at DESC`, userID.String())
+	rows, err := r.db.Query(`SELECT user_id, provider_id, created_at FROM manga_subscriptions WHERE user_id = $1 ORDER BY created_at DESC`, userID.String())
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (r *MangaRepository) GetUserSubscriptions(userID uuid.UUID) ([]*MangaSubscr
 
 func (r *MangaRepository) IsSubscribed(userID, providerID uuid.UUID) (bool, error) {
 	var count int
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM manga_subscriptions WHERE user_id = ? AND provider_id = ?`, userID.String(), providerID.String()).Scan(&count)
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM manga_subscriptions WHERE user_id = $1 AND provider_id = $2`, userID.String(), providerID.String()).Scan(&count)
 	return count > 0, err
 }
 
@@ -165,7 +165,7 @@ func (r *MangaRepository) UpsertHistory(userID, providerID uuid.UUID, mangaID, c
 	now := time.Now().UTC()
 	cover := sql.NullString{String: coverURL, Valid: coverURL != ""}
 	_, err := r.db.Exec(`INSERT INTO manga_history (user_id, provider_id, manga_id, chapter_id, page_index, title, cover_url, last_read_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT(user_id, provider_id, manga_id) DO UPDATE SET
 			chapter_id = excluded.chapter_id,
 			page_index = excluded.page_index,
@@ -178,12 +178,12 @@ func (r *MangaRepository) UpsertHistory(userID, providerID uuid.UUID, mangaID, c
 
 func (r *MangaRepository) GetUserHistory(userID uuid.UUID, page, pageSize int) ([]*MangaHistory, int, error) {
 	var total int
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM manga_history WHERE user_id = ?`, userID.String()).Scan(&total)
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM manga_history WHERE user_id = $1`, userID.String()).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
 	offset := (page - 1) * pageSize
-	rows, err := r.db.Query(`SELECT user_id, provider_id, manga_id, chapter_id, page_index, title, cover_url, last_read_at FROM manga_history WHERE user_id = ? ORDER BY last_read_at DESC LIMIT ? OFFSET ?`, userID.String(), pageSize, offset)
+	rows, err := r.db.Query(`SELECT user_id, provider_id, manga_id, chapter_id, page_index, title, cover_url, last_read_at FROM manga_history WHERE user_id = $1 ORDER BY last_read_at DESC LIMIT $2 OFFSET $3`, userID.String(), pageSize, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -202,13 +202,13 @@ func (r *MangaRepository) GetUserHistory(userID uuid.UUID, page, pageSize int) (
 }
 
 func (r *MangaRepository) DeleteHistory(userID, providerID uuid.UUID, mangaID string) error {
-	_, err := r.db.Exec(`DELETE FROM manga_history WHERE user_id = ? AND provider_id = ? AND manga_id = ?`, userID.String(), providerID.String(), mangaID)
+	_, err := r.db.Exec(`DELETE FROM manga_history WHERE user_id = $1 AND provider_id = $2 AND manga_id = $3`, userID.String(), providerID.String(), mangaID)
 	return err
 }
 
 // Settings methods
 func (r *MangaRepository) GetUserSettings(userID uuid.UUID) (*MangaUserSettings, error) {
-	row := r.db.QueryRow(`SELECT user_id, schema_version, data, updated_at FROM manga_user_settings WHERE user_id = ?`, userID.String())
+	row := r.db.QueryRow(`SELECT user_id, schema_version, data, updated_at FROM manga_user_settings WHERE user_id = $1`, userID.String())
 	var s MangaUserSettings
 	var updatedAt string
 	if err := row.Scan(&s.UserID, &s.SchemaVersion, &s.Data, &updatedAt); err != nil {
@@ -231,11 +231,11 @@ func (r *MangaRepository) UpsertUserSettings(userID uuid.UUID, schemaVersion *in
 		sv = *schemaVersion
 	}
 	_, err := r.db.Exec(`INSERT INTO manga_user_settings (user_id, schema_version, data, updated_at)
-		VALUES (?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4)
 		ON CONFLICT(user_id) DO UPDATE SET
-			schema_version = COALESCE(?, schema_version),
-			data = COALESCE(?, data),
-			updated_at = ?`,
+			schema_version = COALESCE($5, schema_version),
+			data = COALESCE($6, data),
+			updated_at = $7`,
 		userID.String(), sv, string(jsonData), now.Format(time.RFC3339),
 		sv, string(jsonData), now.Format(time.RFC3339))
 	if err != nil {

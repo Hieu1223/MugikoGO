@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 
+	"mugiko/internal/common/api"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 )
@@ -12,7 +13,7 @@ func RequireRole(allowedRoles ...dto.Role) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			auth := GetAuthContext(r)
 			if auth == nil {
-				writeError(w, exception.ErrUnauthorized)
+				api.WriteError(w, exception.MsgUnauthorized, exception.StatusUnauthorized)
 				return
 			}
 
@@ -25,7 +26,7 @@ func RequireRole(allowedRoles ...dto.Role) func(http.Handler) http.Handler {
 			}
 
 			if !allowed {
-				writeError(w, exception.ErrForbidden)
+				api.WriteError(w, exception.MsgForbidden, exception.StatusForbidden)
 				return
 			}
 

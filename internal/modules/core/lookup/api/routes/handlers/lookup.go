@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"mugiko/internal/common/api"
 	"mugiko/internal/modules/core/lookup/dto"
 	"mugiko/internal/modules/core/lookup/service"
 )
@@ -20,18 +21,18 @@ func NewLookupHandler(lookupService *service.LookupService) *LookupHandler {
 func (h *LookupHandler) LookupWord(w http.ResponseWriter, r *http.Request) {
 	word := r.URL.Query().Get("word")
 	if word == "" {
-		writeError(w, "Word parameter is required", http.StatusBadRequest)
+		api.WriteError(w, "Word parameter is required", http.StatusBadRequest)
 		return
 	}
 
 	entry, err := h.lookupService.LookupWord(word)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		api.WriteError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if entry == nil {
-		writeError(w, "Word not found", http.StatusNotFound)
+		api.WriteError(w, "Word not found", http.StatusNotFound)
 		return
 	}
 
@@ -42,7 +43,7 @@ func (h *LookupHandler) LookupWord(w http.ResponseWriter, r *http.Request) {
 func (h *LookupHandler) PrefixSearch(w http.ResponseWriter, r *http.Request) {
 	prefix := r.URL.Query().Get("prefix")
 	if prefix == "" {
-		writeError(w, "Prefix parameter is required", http.StatusBadRequest)
+		api.WriteError(w, "Prefix parameter is required", http.StatusBadRequest)
 		return
 	}
 
@@ -55,7 +56,7 @@ func (h *LookupHandler) PrefixSearch(w http.ResponseWriter, r *http.Request) {
 
 	results, err := h.lookupService.PrefixSearch(prefix, limit)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		api.WriteError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -71,35 +72,26 @@ func (h *LookupHandler) PrefixSearch(w http.ResponseWriter, r *http.Request) {
 func (h *LookupHandler) LookupKanji(w http.ResponseWriter, r *http.Request) {
 	kanji := r.URL.Query().Get("kanji")
 	if kanji == "" {
-		writeError(w, "Kanji parameter is required", http.StatusBadRequest)
+		api.WriteError(w, "Kanji parameter is required", http.StatusBadRequest)
 		return
 	}
 
 	if len([]rune(kanji)) != 1 {
-		writeError(w, "Kanji must be a single character", http.StatusBadRequest)
+		api.WriteError(w, "Kanji must be a single character", http.StatusBadRequest)
 		return
 	}
 
 	entry, err := h.lookupService.LookupKanji(kanji)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		api.WriteError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if entry == nil {
-		writeError(w, "Kanji not found", http.StatusNotFound)
+		api.WriteError(w, "Kanji not found", http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(entry)
-}
-
-func writeError(w http.ResponseWriter, message string, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{
-		"error_code": "LOOKUP_ERROR",
-		"detail":     message,
-	})
 }

@@ -27,7 +27,7 @@ func (r *SubtitleRepository) CreateProvider(name string, kind ProviderKind, base
 	}
 
 	_, err := r.db.Exec(
-		`INSERT INTO subtitle_providers (id, name, kind, base_url, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO subtitle_providers (id, name, kind, base_url, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		id.String(), name, string(kind), baseURLStr, true, now, now,
 	)
 	if err != nil {
@@ -47,7 +47,7 @@ func (r *SubtitleRepository) CreateProvider(name string, kind ProviderKind, base
 
 func (r *SubtitleRepository) GetProvider(providerID uuid.UUID) (*SubtitleProvider, error) {
 	row := r.db.QueryRow(
-		`SELECT id, name, kind, base_url, is_active, last_synced_at, created_at, updated_at FROM subtitle_providers WHERE id = ?`,
+		`SELECT id, name, kind, base_url, is_active, last_synced_at, created_at, updated_at FROM subtitle_providers WHERE id = $1`,
 		providerID.String(),
 	)
 
@@ -120,7 +120,7 @@ func (r *SubtitleRepository) GetActiveProviders() ([]*SubtitleProvider, error) {
 
 func (r *SubtitleRepository) UpdateProviderSyncTime(providerID uuid.UUID) error {
 	_, err := r.db.Exec(
-		`UPDATE subtitle_providers SET last_synced_at = CURRENT_TIMESTAMP WHERE id = ?`,
+		`UPDATE subtitle_providers SET last_synced_at = CURRENT_TIMESTAMP WHERE id = $1`,
 		providerID.String(),
 	)
 	return err
@@ -128,7 +128,7 @@ func (r *SubtitleRepository) UpdateProviderSyncTime(providerID uuid.UUID) error 
 
 func (r *SubtitleRepository) GetProviderServices(providerID uuid.UUID) ([]*SubtitleProviderService, error) {
 	rows, err := r.db.Query(
-		`SELECT id, provider_id, service_key, name, options, is_active, created_at, updated_at FROM subtitle_provider_services WHERE provider_id = ? AND is_active = TRUE`,
+		`SELECT id, provider_id, service_key, name, options, is_active, created_at, updated_at FROM subtitle_provider_services WHERE provider_id = $1 AND is_active = TRUE`,
 		providerID.String(),
 	)
 	if err != nil {
@@ -158,7 +158,7 @@ func (r *SubtitleRepository) GetProviderServices(providerID uuid.UUID) ([]*Subti
 
 func (r *SubtitleRepository) GetProviderService(providerID uuid.UUID, serviceKey string) (*SubtitleProviderService, error) {
 	row := r.db.QueryRow(
-		`SELECT id, provider_id, service_key, name, options, is_active, created_at, updated_at FROM subtitle_provider_services WHERE provider_id = ? AND service_key = ? AND is_active = TRUE`,
+		`SELECT id, provider_id, service_key, name, options, is_active, created_at, updated_at FROM subtitle_provider_services WHERE provider_id = $1 AND service_key = $2 AND is_active = TRUE`,
 		providerID.String(), serviceKey,
 	)
 
@@ -183,7 +183,7 @@ func (r *SubtitleRepository) GetProviderService(providerID uuid.UUID, serviceKey
 func (r *SubtitleRepository) UpsertServices(providerID uuid.UUID, services []map[string]any) error {
 	// Deactivate all existing services
 	_, err := r.db.Exec(
-		`UPDATE subtitle_provider_services SET is_active = FALSE WHERE provider_id = ?`,
+		`UPDATE subtitle_provider_services SET is_active = FALSE WHERE provider_id = $1`,
 		providerID.String(),
 	)
 	if err != nil {
@@ -201,7 +201,7 @@ func (r *SubtitleRepository) UpsertServices(providerID uuid.UUID, services []map
 		}
 
 		_, err := r.db.Exec(
-			`INSERT INTO subtitle_provider_services (id, provider_id, service_key, name, options, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			`INSERT INTO subtitle_provider_services (id, provider_id, service_key, name, options, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 			id.String(), providerID.String(), svc["service_key"].(string), svc["name"].(string), optionsStr, true, now, now,
 		)
 		if err != nil {
@@ -218,7 +218,7 @@ func (r *SubtitleRepository) CreateSubtitle(videoID, videoURL string, providerID
 	now := time.Now()
 
 	_, err := r.db.Exec(
-		`INSERT INTO subtitles (id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO subtitles (id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		id.String(), videoID, videoURL, providerID.String(), serviceID.String(), createdBy.String(), "queued", now, now,
 	)
 	if err != nil {
@@ -240,7 +240,7 @@ func (r *SubtitleRepository) CreateSubtitle(videoID, videoURL string, providerID
 
 func (r *SubtitleRepository) GetSubtitle(subtitleID uuid.UUID) (*Subtitle, error) {
 	row := r.db.QueryRow(
-		`SELECT id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at FROM subtitles WHERE id = ?`,
+		`SELECT id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at FROM subtitles WHERE id = $1`,
 		subtitleID.String(),
 	)
 
@@ -258,7 +258,7 @@ func (r *SubtitleRepository) GetSubtitle(subtitleID uuid.UUID) (*Subtitle, error
 
 func (r *SubtitleRepository) GetSubtitlesByVideoID(videoID string, limit, offset int) ([]*Subtitle, error) {
 	rows, err := r.db.Query(
-		`SELECT id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at FROM subtitles WHERE video_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT id, video_id, video_url, provider_id, service_id, created_by, status, created_at, updated_at FROM subtitles WHERE video_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
 		videoID, limit, offset,
 	)
 	if err != nil {
@@ -293,7 +293,7 @@ func (r *SubtitleRepository) AddSegments(subtitleID uuid.UUID, segments []map[st
 		}
 
 		_, err := r.db.Exec(
-			`INSERT INTO subtitle_segments (id, subtitle_id, idx, start_ms, end_ms, words) VALUES (?, ?, ?, ?, ?, ?)`,
+			`INSERT INTO subtitle_segments (id, subtitle_id, idx, start_ms, end_ms, words) VALUES ($1, $2, $3, $4, $5, $6)`,
 			id.String(), subtitleID.String(), idx, seg["start_ms"], seg["end_ms"], wordsStr,
 		)
 		if err != nil {
@@ -306,7 +306,7 @@ func (r *SubtitleRepository) AddSegments(subtitleID uuid.UUID, segments []map[st
 
 func (r *SubtitleRepository) GetSegments(subtitleID uuid.UUID, limit, offset int) ([]*SubtitleSegment, error) {
 	rows, err := r.db.Query(
-		`SELECT id, subtitle_id, idx, start_ms, end_ms, words FROM subtitle_segments WHERE subtitle_id = ? ORDER BY idx LIMIT ? OFFSET ?`,
+		`SELECT id, subtitle_id, idx, start_ms, end_ms, words FROM subtitle_segments WHERE subtitle_id = $1 ORDER BY idx LIMIT $2 OFFSET $3`,
 		subtitleID.String(), limit, offset,
 	)
 	if err != nil {
@@ -337,7 +337,7 @@ func (r *SubtitleRepository) GetSegments(subtitleID uuid.UUID, limit, offset int
 func (r *SubtitleRepository) GetSegmentCount(subtitleID uuid.UUID) (int, error) {
 	var count int
 	err := r.db.QueryRow(
-		`SELECT COUNT(*) FROM subtitle_segments WHERE subtitle_id = ?`,
+		`SELECT COUNT(*) FROM subtitle_segments WHERE subtitle_id = $1`,
 		subtitleID.String(),
 	).Scan(&count)
 	if err != nil {
@@ -351,8 +351,8 @@ func (r *SubtitleRepository) UpsertAccess(userID, subtitleID uuid.UUID) error {
 	now := time.Now()
 
 	_, err := r.db.Exec(
-		`INSERT INTO subtitle_access (user_id, subtitle_id, last_accessed_at) VALUES (?, ?, ?)
-		 ON CONFLICT(user_id, subtitle_id) DO UPDATE SET last_accessed_at = ?`,
+		`INSERT INTO subtitle_access (user_id, subtitle_id, last_accessed_at) VALUES ($1, $2, $3)
+		 ON CONFLICT(user_id, subtitle_id) DO UPDATE SET last_accessed_at = $4`,
 		userID.String(), subtitleID.String(), now, now,
 	)
 	return err
@@ -364,7 +364,7 @@ func (r *SubtitleRepository) GetUserHistory(userID uuid.UUID, limit, offset int)
 	err := r.db.QueryRow(
 		`SELECT COUNT(*) FROM subtitle_access sa
 		 JOIN subtitles s ON sa.subtitle_id = s.id
-		 WHERE sa.user_id = ?`,
+		 WHERE sa.user_id = $1`,
 		userID.String(),
 	).Scan(&total)
 	if err != nil {
@@ -377,9 +377,9 @@ func (r *SubtitleRepository) GetUserHistory(userID uuid.UUID, limit, offset int)
 		        (SELECT COUNT(*) FROM subtitle_segments WHERE subtitle_id = sa.subtitle_id) as segment_count
 		 FROM subtitle_access sa
 		 JOIN subtitles s ON sa.subtitle_id = s.id
-		 WHERE sa.user_id = ?
+		 WHERE sa.user_id = $1
 		 ORDER BY sa.last_accessed_at DESC
-		 LIMIT ? OFFSET ?`,
+		 LIMIT $2 OFFSET $3`,
 		userID.String(), limit, offset,
 	)
 	if err != nil {
@@ -411,7 +411,7 @@ type SubtitleHistoryItem struct {
 // User settings
 func (r *SubtitleRepository) GetUserSettings(userID uuid.UUID) (*UserSettings, error) {
 	row := r.db.QueryRow(
-		`SELECT user_id, schema_version, data, updated_at FROM user_settings WHERE user_id = ?`,
+		`SELECT user_id, schema_version, data, updated_at FROM user_settings WHERE user_id = $1`,
 		userID.String(),
 	)
 
@@ -437,8 +437,8 @@ func (r *SubtitleRepository) UpsertUserSettings(userID uuid.UUID, schemaVersion 
 	now := time.Now()
 
 	_, err := r.db.Exec(
-		`INSERT INTO user_settings (user_id, schema_version, data, updated_at) VALUES (?, ?, ?, ?)
-		 ON CONFLICT(user_id) DO UPDATE SET schema_version = ?, data = ?, updated_at = ?`,
+		`INSERT INTO user_settings (user_id, schema_version, data, updated_at) VALUES ($1, $2, $3, $4)
+		 ON CONFLICT(user_id) DO UPDATE SET schema_version = $5, data = $6, updated_at = $7`,
 		userID.String(), schemaVersion, dataStr, now, schemaVersion, dataStr, now,
 	)
 	if err != nil {
@@ -456,7 +456,7 @@ func (r *SubtitleRepository) UpsertUserSettings(userID uuid.UUID, schemaVersion 
 // Subtitle user state
 func (r *SubtitleRepository) GetUserState(userID, subtitleID uuid.UUID) (*SubtitleUserState, error) {
 	row := r.db.QueryRow(
-		`SELECT user_id, subtitle_id, schema_version, data, updated_at FROM subtitle_user_state WHERE user_id = ? AND subtitle_id = ?`,
+		`SELECT user_id, subtitle_id, schema_version, data, updated_at FROM subtitle_user_state WHERE user_id = $1 AND subtitle_id = $2`,
 		userID.String(), subtitleID.String(),
 	)
 
@@ -482,8 +482,8 @@ func (r *SubtitleRepository) UpsertUserState(userID, subtitleID uuid.UUID, schem
 	now := time.Now()
 
 	_, err := r.db.Exec(
-		`INSERT INTO subtitle_user_state (user_id, subtitle_id, schema_version, data, updated_at) VALUES (?, ?, ?, ?, ?)
-		 ON CONFLICT(user_id, subtitle_id) DO UPDATE SET schema_version = ?, data = ?, updated_at = ?`,
+		`INSERT INTO subtitle_user_state (user_id, subtitle_id, schema_version, data, updated_at) VALUES ($1, $2, $3, $4, $5)
+		 ON CONFLICT(user_id, subtitle_id) DO UPDATE SET schema_version = $6, data = $7, updated_at = $8`,
 		userID.String(), subtitleID.String(), schemaVersion, dataStr, now, schemaVersion, dataStr, now,
 	)
 	if err != nil {

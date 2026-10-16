@@ -195,10 +195,10 @@ func (h *MangaHandler) ListPublicProviders(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"items":      providers,
-		"total":      total,
-		"page":       page,
-		"page_size":  pageSize,
+		"items":     providers,
+		"total":     total,
+		"page":      page,
+		"page_size": pageSize,
 	})
 }
 
@@ -336,10 +336,10 @@ func (h *MangaHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"items":      history,
-		"total":      total,
-		"page":       page,
-		"page_size":  pageSize,
+		"items":     history,
+		"total":     total,
+		"page":      page,
+		"page_size": pageSize,
 	})
 }
 

@@ -4,22 +4,23 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"mugiko/internal/modules/core/user/middleware"
+	"mugiko/internal/common/api"
 	"mugiko/internal/modules/core/user/exception"
+	"mugiko/internal/modules/core/user/middleware"
 	"mugiko/internal/modules/core/user/service"
 )
 
 func GetProfile(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil {
-		writeError(w, exception.ErrUnauthorized)
+		api.WriteError(w, exception.MsgUnauthorized, exception.StatusUnauthorized)
 		return
 	}
 
 	userService := service.NewUserService()
 	profile, err := userService.GetMyProfile(auth.UserID)
 	if err != nil {
-		writeError(w, exception.ErrProfileNotFound)
+		api.WriteError(w, exception.MsgProfileNotFound, exception.StatusProfileNotFound)
 		return
 	}
 
@@ -30,7 +31,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil {
-		writeError(w, exception.ErrUnauthorized)
+		api.WriteError(w, exception.MsgUnauthorized, exception.StatusUnauthorized)
 		return
 	}
 
@@ -40,14 +41,14 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		Email *string `json:"email,omitempty"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, exception.ErrInvalidTokenFormat)
+		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 		return
 	}
 
 	userService := service.NewUserService()
 	profile, err := userService.UpdateMyProfile(auth.UserID, req.Name, req.Bio, req.Email)
 	if err != nil {
-		writeError(w, exception.ErrProfileNotFound)
+		api.WriteError(w, exception.MsgProfileNotFound, exception.StatusProfileNotFound)
 		return
 	}
 
