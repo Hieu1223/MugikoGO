@@ -15,7 +15,7 @@ import (
 	webnovelroutes "mugiko/internal/modules/media/webnovel/api/routes"
 	"net/http"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/lib/pq"
 )
 
 func Run() {
