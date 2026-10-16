@@ -6,39 +6,6 @@ import (
 	"os"
 )
 
-type DictionaryEntry struct {
-	Word     string
-	Readings []DictionaryReading
-}
-
-type DictionaryReading struct {
-	Kana    string
-	Meaning string
-}
-
-type KanjiEntry struct {
-	Kanji      string
-	Reading    string
-	Meanings   string
-	Strokes    int
-	Radical    string
-	Penstrokes string
-	Shape      string
-	Unicode    string
-}
-
-type BinaryDictionaryProvider struct {
-	data         []byte
-	trieStart    uint32
-	defStart     uint32
-	entryCount   uint32
-}
-
-const (
-	MUGIMagic   = "MUGI"
-	MUGIVersion = 1
-)
-
 func NewBinaryDictionaryProvider(dictPath string) (*BinaryDictionaryProvider, error) {
 	data, err := os.ReadFile(dictPath)
 	if err != nil {
@@ -338,10 +305,10 @@ func (p *KanjiDictionaryProvider) Lookup(kanji string) *KanjiEntry {
 }
 
 type LookupRepository struct {
-	dictProvider   *BinaryDictionaryProvider
-	kanjiProvider  *KanjiDictionaryProvider
-	dictPath       string
-	kanjiDictPath  string
+	dictProvider  *BinaryDictionaryProvider
+	kanjiProvider *KanjiDictionaryProvider
+	dictPath      string
+	kanjiDictPath string
 }
 
 func NewLookupRepository(dictPath, kanjiDictPath string) (*LookupRepository, error) {
@@ -357,10 +324,10 @@ func NewLookupRepository(dictPath, kanjiDictPath string) (*LookupRepository, err
 	}
 
 	return &LookupRepository{
-		dictProvider:   dictProvider,
-		kanjiProvider:  kanjiProvider,
-		dictPath:       dictPath,
-		kanjiDictPath:  kanjiDictPath,
+		dictProvider:  dictProvider,
+		kanjiProvider: kanjiProvider,
+		dictPath:      dictPath,
+		kanjiDictPath: kanjiDictPath,
 	}, nil
 }
 

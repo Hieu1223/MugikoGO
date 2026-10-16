@@ -14,11 +14,6 @@ func RegisterSubtitleRoutes(mux *http.ServeMux, db *sql.DB) {
 	svc := service.NewSubtitleService(repo)
 	handler := handlers.NewSubtitleHandler(svc)
 
-	// Initialize schema
-	if err := svc.Initialize(); err != nil {
-		panic("failed to initialize subtitle: " + err.Error())
-	}
-
 	// Provider routes
 	mux.HandleFunc("GET /api/v1/subtitle-providers", handler.ListProviders)
 	mux.HandleFunc("POST /api/v1/subtitle-providers", handler.CreateProvider)

@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/google/uuid"
 	"mugiko/internal/common/persistent"
 	"mugiko/internal/modules/core/user/dto"
+
+	"github.com/google/uuid"
 )
 
 type UserRepository struct {
@@ -162,6 +163,10 @@ func (r *UserRepository) ListUsers(limit, offset int) ([]*dto.AuthData, error) {
 			IsActive: isActive,
 		})
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return users, nil
 }
 

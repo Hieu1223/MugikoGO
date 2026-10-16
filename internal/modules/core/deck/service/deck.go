@@ -1,9 +1,10 @@
 package service
 
 import (
-	"github.com/google/uuid"
 	"mugiko/internal/modules/core/deck/dto"
 	"mugiko/internal/modules/core/deck/persistent"
+
+	"github.com/google/uuid"
 )
 
 type DeckService struct {
@@ -50,9 +51,7 @@ func (s *DeckService) ListDecks(ownerID uuid.UUID, page, pageSize int) (*dto.Pag
 	}
 
 	responses := make([]dto.DeckResponse, len(decks))
-	for i, d := range decks {
-		responses[i] = d
-	}
+	copy(responses, decks)
 
 	totalPages := int((total + int64(pageSize) - 1) / int64(pageSize))
 
@@ -105,9 +104,7 @@ func (s *DeckService) ListDeckWords(deckID uuid.UUID, page, pageSize int) (*dto.
 	}
 
 	responses := make([]dto.DeckWordResponse, len(words))
-	for i, w := range words {
-		responses[i] = w
-	}
+	copy(responses, words)
 
 	totalPages := int((total + int64(pageSize) - 1) / int64(pageSize))
 
@@ -133,10 +130,6 @@ func (s *DeckService) UpdateDeckWord(wordID uuid.UUID, req dto.DeckWordUpdateReq
 
 func (s *DeckService) DeleteDeckWord(wordID uuid.UUID) error {
 	return s.repo.DeleteDeckWord(wordID)
-}
-
-func (s *DeckService) Initialize() error {
-	return s.repo.InitializeSchema()
 }
 
 func (s *DeckService) toDeckResponse(d *dto.Deck) *dto.DeckResponse {

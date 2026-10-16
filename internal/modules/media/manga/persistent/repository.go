@@ -3,113 +3,14 @@ package persistent
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"mugiko/internal/modules/media/manga/dto"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type MangaProvider struct {
-	ID          uuid.UUID
-	OwnerID     uuid.UUID
-	Name        string
-	BaseURL     string
-	Visibility  dto.ProviderVisibility
-	IsBuiltin   bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
-
-type MangaSubscription struct {
-	UserID     uuid.UUID
-	ProviderID uuid.UUID
-	CreatedAt  time.Time
-}
-
-type MangaHistory struct {
-	UserID      uuid.UUID
-	ProviderID  uuid.UUID
-	MangaID     string
-	ChapterID   string
-	PageIndex   int
-	Title       string
-	CoverURL    sql.NullString
-	LastReadAt  time.Time
-}
-
-type MangaUserSettings struct {
-	UserID        uuid.UUID
-	SchemaVersion int
-	Data          []byte // JSON
-	UpdatedAt     time.Time
-}
-
-type MangaRepository struct {
-	db *sql.DB
-}
-
 func NewMangaRepository(db *sql.DB) *MangaRepository {
 	return &MangaRepository{db: db}
-}
-
-// InitializeSchema creates all manga tables
-func (r *MangaRepository) InitializeSchema() error {
-	queries := []string{
-		`CREATE TABLE IF NOT EXISTS manga_providers (
-			id TEXT PRIMARY KEY,
-			owner_id TEXT NOT NULL,
-			name TEXT NOT NULL,
-			base_url TEXT NOT NULL,
-			visibility TEXT NOT NULL DEFAULT 'private',
-			is_builtin INTEGER NOT NULL DEFAULT 0,
-			created_at TEXT NOT NULL DEFAULT (datetime('now')),
-			updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-			FOREIGN KEY (owner_id) REFERENCES user_auths(user_id) ON DELETE CASCADE
-		)`,
-		`CREATE UNIQUE INDEX IF NOT EXISTS ix_manga_providers_owner_base_url ON manga_providers(owner_id, base_url)`,
-		`CREATE INDEX IF NOT EXISTS ix_manga_providers_visibility ON manga_providers(visibility)`,
-		`CREATE INDEX IF NOT EXISTS ix_manga_providers_owner_id ON manga_providers(owner_id)`,
-
-		`CREATE TABLE IF NOT EXISTS manga_subscriptions (
-			user_id TEXT NOT NULL,
-			provider_id TEXT NOT NULL,
-			created_at TEXT NOT NULL DEFAULT (datetime('now')),
-			PRIMARY KEY (user_id, provider_id),
-			FOREIGN KEY (user_id) REFERENCES user_auths(user_id) ON DELETE CASCADE,
-			FOREIGN KEY (provider_id) REFERENCES manga_providers(id) ON DELETE CASCADE
-		)`,
-
-		`CREATE TABLE IF NOT EXISTS manga_history (
-			user_id TEXT NOT NULL,
-			provider_id TEXT NOT NULL,
-			manga_id TEXT NOT NULL,
-			chapter_id TEXT NOT NULL,
-			page_index INTEGER NOT NULL DEFAULT 0,
-			title TEXT NOT NULL,
-			cover_url TEXT,
-			last_read_at TEXT NOT NULL DEFAULT (datetime('now')),
-			PRIMARY KEY (user_id, provider_id, manga_id),
-			FOREIGN KEY (user_id) REFERENCES user_auths(user_id) ON DELETE CASCADE,
-			FOREIGN KEY (provider_id) REFERENCES manga_providers(id) ON DELETE CASCADE
-		)`,
-		`CREATE INDEX IF NOT EXISTS ix_manga_history_user_last_read ON manga_history(user_id, last_read_at)`,
-
-		`CREATE TABLE IF NOT EXISTS manga_user_settings (
-			user_id TEXT PRIMARY KEY,
-			schema_version INTEGER NOT NULL DEFAULT 1,
-			data TEXT NOT NULL DEFAULT '{}',
-			updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-			FOREIGN KEY (user_id) REFERENCES user_auths(user_id) ON DELETE CASCADE
-		)`,
-	}
-
-	for _, q := range queries {
-		if _, err := r.db.Exec(q); err != nil {
-			return fmt.Errorf("schema init failed: %w", err)
-		}
-	}
-	return nil
 }
 
 // Provider methods
@@ -247,6 +148,9 @@ func (r *MangaRepository) GetUserSubscriptions(userID uuid.UUID) ([]*MangaSubscr
 		s.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 		subs = append(subs, &s)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return subs, nil
 }
 
@@ -354,6 +258,9 @@ func (r *MangaRepository) scanProviders(rows *sql.Rows) ([]*MangaProvider, error
 		p.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 		p.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
 		providers = append(providers, &p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return providers, nil
 }

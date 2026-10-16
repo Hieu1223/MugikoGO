@@ -16,11 +16,6 @@ func RegisterWebNovelRoutes(mux *http.ServeMux, db *sql.DB) {
 	svc := service.NewNovelService(novelRepo, chapterRepo, paragraphRepo)
 	handler := handlers.NewNovelHandler(svc)
 
-	// Initialize schema
-	if err := novelRepo.InitializeSchema(); err != nil {
-		panic("failed to initialize webnovel: " + err.Error())
-	}
-
 	// Novel routes
 	mux.HandleFunc("POST /api/v1/webnovel/novels", handler.AddNovel)
 	mux.HandleFunc("GET /api/v1/webnovel/novels", handler.ListMyNovels)

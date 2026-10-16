@@ -20,76 +20,6 @@ func NewSubtitleService(repo *persistent.SubtitleRepository) *SubtitleService {
 	return &SubtitleService{repo: repo}
 }
 
-func (s *SubtitleService) Initialize() error {
-	return s.repo.InitializeSchema()
-}
-
-// SeedYouTubeAutoCaption seeds the YouTube provider with Japanese auto-caption service
-func (s *SubtitleService) SeedYouTubeAutoCaption() error {
-	// Check if YouTube provider already exists
-	providers, err := s.repo.GetActiveProviders()
-	if err != nil {
-		return err
-	}
-
-	var youtubeProvider *persistent.SubtitleProvider
-	for _, p := range providers {
-		if p.Kind == persistent.ProviderKindYouTube {
-			youtubeProvider = p
-			break
-		}
-	}
-
-	var providerID uuid.UUID
-	if youtubeProvider == nil {
-		// Create YouTube provider
-		provider, err := s.CreateProvider(dto.SubtitleProviderCreate{
-			Name: "YouTube",
-			Kind: dto.ProviderKindYouTube,
-		})
-		if err != nil {
-			return err
-		}
-		providerID = provider.ID
-	} else {
-		providerID = youtubeProvider.ID
-	}
-
-	// Check if auto-caption service exists
-	services, err := s.repo.GetProviderServices(providerID)
-	if err != nil {
-		return err
-	}
-
-	hasAutoCaption := false
-	for _, svc := range services {
-		if svc.ServiceKey == "auto_caption" {
-			hasAutoCaption = true
-			break
-		}
-	}
-
-	if !hasAutoCaption {
-		// Add auto-caption service with Japanese language option
-		options := map[string]any{
-			"languages":          []string{"ja", "en"},
-			"default_language":   "ja",
-		}
-		err = s.repo.UpsertServices(providerID, []map[string]any{
-			{
-				"service_key": "auto_caption",
-				"name":        "Auto Caption",
-				"options":     options,
-			},
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // Provider methods
 func (s *SubtitleService) ListProviders() ([]*dto.SubtitleProviderResponse, error) {
 	providers, err := s.repo.GetActiveProviders()
@@ -128,15 +58,15 @@ func (s *SubtitleService) ListProviders() ([]*dto.SubtitleProviderResponse, erro
 		}
 
 		result[i] = &dto.SubtitleProviderResponse{
-			ID:            p.ID,
-			Name:          p.Name,
-			Kind:          dto.ProviderKind(p.Kind),
-			BaseURL:       baseURL,
-			IsActive:      p.IsActive,
-			LastSyncedAt:  lastSyncedAt,
-			CreatedAt:     p.CreatedAt,
-			UpdatedAt:     p.UpdatedAt,
-			Services:      serviceResponses,
+			ID:           p.ID,
+			Name:         p.Name,
+			Kind:         dto.ProviderKind(p.Kind),
+			BaseURL:      baseURL,
+			IsActive:     p.IsActive,
+			LastSyncedAt: lastSyncedAt,
+			CreatedAt:    p.CreatedAt,
+			UpdatedAt:    p.UpdatedAt,
+			Services:     serviceResponses,
 		}
 	}
 
@@ -155,14 +85,14 @@ func (s *SubtitleService) CreateProvider(data dto.SubtitleProviderCreate) (*dto.
 	}
 
 	return &dto.SubtitleProviderResponse{
-		ID:           provider.ID,
-		Name:         provider.Name,
-		Kind:         dto.ProviderKind(provider.Kind),
-		BaseURL:      baseURL,
-		IsActive:     provider.IsActive,
-		CreatedAt:    provider.CreatedAt,
-		UpdatedAt:    provider.UpdatedAt,
-		Services:     []dto.SubtitleProviderServiceResponse{},
+		ID:        provider.ID,
+		Name:      provider.Name,
+		Kind:      dto.ProviderKind(provider.Kind),
+		BaseURL:   baseURL,
+		IsActive:  provider.IsActive,
+		CreatedAt: provider.CreatedAt,
+		UpdatedAt: provider.UpdatedAt,
+		Services:  []dto.SubtitleProviderServiceResponse{},
 	}, nil
 }
 
@@ -249,12 +179,12 @@ func (s *SubtitleService) GetSubtitleSegments(subtitleID uuid.UUID, limit, offse
 			json.Unmarshal([]byte(*seg.Words), &words)
 		}
 		segmentResponses[i] = dto.SubtitleSegmentResponse{
-			ID:        seg.ID,
+			ID:         seg.ID,
 			SubtitleID: seg.SubtitleID,
-			Idx:       seg.Idx,
-			StartMs:   seg.StartMs,
-			EndMs:     seg.EndMs,
-			Words:     words,
+			Idx:        seg.Idx,
+			StartMs:    seg.StartMs,
+			EndMs:      seg.EndMs,
+			Words:      words,
 		}
 	}
 
@@ -420,7 +350,7 @@ func extractVideoID(url string) string {
 	if len(url) == 0 {
 		return ""
 	}
-	
+
 	// youtube.com/watch?v=VIDEO_ID
 	if idx := len("youtube.com/watch?v="); len(url) > idx {
 		for i := 0; i <= len(url)-idx; i++ {
@@ -436,7 +366,7 @@ func extractVideoID(url string) string {
 			}
 		}
 	}
-	
+
 	// youtu.be/VIDEO_ID
 	if idx := len("youtu.be/"); len(url) > idx {
 		for i := 0; i <= len(url)-idx; i++ {
@@ -452,7 +382,7 @@ func extractVideoID(url string) string {
 			}
 		}
 	}
-	
+
 	// youtube.com/embed/VIDEO_ID
 	if idx := len("youtube.com/embed/"); len(url) > idx {
 		for i := 0; i <= len(url)-idx; i++ {
@@ -468,7 +398,7 @@ func extractVideoID(url string) string {
 			}
 		}
 	}
-	
+
 	// youtube.com/shorts/VIDEO_ID
 	if idx := len("youtube.com/shorts/"); len(url) > idx {
 		for i := 0; i <= len(url)-idx; i++ {
@@ -484,6 +414,6 @@ func extractVideoID(url string) string {
 			}
 		}
 	}
-	
+
 	return ""
 }

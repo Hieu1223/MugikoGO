@@ -14,11 +14,6 @@ func RegisterMangaRoutes(mux *http.ServeMux, db *sql.DB) {
 	svc := service.NewMangaService(repo)
 	handler := handlers.NewMangaHandler(svc)
 
-	// Initialize schema
-	if err := svc.Initialize(); err != nil {
-		panic("failed to initialize manga: " + err.Error())
-	}
-
 	// Provider routes
 	mux.HandleFunc("GET /api/v1/manga/providers", handler.ListProviders)
 	mux.HandleFunc("POST /api/v1/manga/providers", handler.CreateProvider)

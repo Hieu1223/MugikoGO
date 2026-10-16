@@ -2,7 +2,6 @@ package persistent
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"mugiko/internal/modules/media/webnovel/dto"
@@ -10,89 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type Novel struct {
-	ID        uuid.UUID
-	Source    dto.SourceEnum
-	SourceID  string
-	URL       string
-	Title     string
-	Author    sql.NullString
-	Synopsis  sql.NullString
-	AddedBy   uuid.UUID
-	CreatedAt time.Time
-}
-
-type Chapter struct {
-	ID        uuid.UUID
-	NovelID   uuid.UUID
-	Idx       int
-	Title     sql.NullString
-	CreatedAt time.Time
-}
-
-type Paragraph struct {
-	ID        uuid.UUID
-	ChapterID uuid.UUID
-	Idx       int
-	Text      string
-	Words     []byte // JSON
-	CreatedAt time.Time
-}
-
 type NovelRepository struct {
 	db *sql.DB
 }
 
 func NewNovelRepository(db *sql.DB) *NovelRepository {
 	return &NovelRepository{db: db}
-}
-
-func (r *NovelRepository) InitializeSchema() error {
-	queries := []string{
-		`CREATE TABLE IF NOT EXISTS novels (
-			id TEXT PRIMARY KEY,
-			source TEXT NOT NULL,
-			source_id TEXT NOT NULL,
-			url TEXT NOT NULL,
-			title TEXT NOT NULL,
-			author TEXT,
-			synopsis TEXT,
-			added_by TEXT NOT NULL,
-			created_at TEXT NOT NULL DEFAULT (datetime('now')),
-			FOREIGN KEY (added_by) REFERENCES user_auths(user_id) ON DELETE CASCADE,
-			UNIQUE(source, source_id)
-		)`,
-		`CREATE INDEX IF NOT EXISTS ix_novels_added_by ON novels(added_by)`,
-		`CREATE INDEX IF NOT EXISTS ix_novels_source_source_id ON novels(source, source_id)`,
-
-		`CREATE TABLE IF NOT EXISTS chapters (
-			id TEXT PRIMARY KEY,
-			novel_id TEXT NOT NULL,
-			idx INTEGER NOT NULL,
-			title TEXT,
-			created_at TEXT NOT NULL DEFAULT (datetime('now')),
-			FOREIGN KEY (novel_id) REFERENCES novels(id) ON DELETE CASCADE
-		)`,
-		`CREATE INDEX IF NOT EXISTS ix_chapters_novel_id ON chapters(novel_id)`,
-
-		`CREATE TABLE IF NOT EXISTS paragraphs (
-			id TEXT PRIMARY KEY,
-			chapter_id TEXT NOT NULL,
-			idx INTEGER NOT NULL,
-			text TEXT NOT NULL,
-			words TEXT NOT NULL DEFAULT '[]',
-			created_at TEXT NOT NULL DEFAULT (datetime('now')),
-			FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
-		)`,
-		`CREATE INDEX IF NOT EXISTS ix_paragraphs_chapter_id ON paragraphs(chapter_id)`,
-	}
-
-	for _, q := range queries {
-		if _, err := r.db.Exec(q); err != nil {
-			return fmt.Errorf("schema init failed: %w", err)
-		}
-	}
-	return nil
 }
 
 func (r *NovelRepository) GetBySourceID(source dto.SourceEnum, sourceID string) (*Novel, error) {
@@ -152,6 +74,10 @@ func (r *NovelRepository) ListByUser(userID uuid.UUID, page, pageSize int) ([]*N
 		n.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 		novels = append(novels, &n)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
 	return novels, total, nil
 }
 
@@ -179,6 +105,10 @@ func (r *NovelRepository) ListAll(page, pageSize int) ([]*Novel, int, error) {
 		n.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 		novels = append(novels, &n)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
 	return novels, total, nil
 }
 

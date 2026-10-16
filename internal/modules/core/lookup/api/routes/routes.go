@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"mugiko/internal/modules/core/lookup/api/routes/handlers"
-	"mugiko/internal/modules/core/lookup/service"
 	"mugiko/internal/modules/core/lookup/persistent"
+	"mugiko/internal/modules/core/lookup/service"
 )
 
 func RegisterLookupRoutes(mux *http.ServeMux, dictPath, kanjiDictPath string) {
@@ -15,10 +15,6 @@ func RegisterLookupRoutes(mux *http.ServeMux, dictPath, kanjiDictPath string) {
 	}
 	lookupService := service.NewLookupService(repo)
 	lookupHandler := handlers.NewLookupHandler(lookupService)
-
-	if err := lookupService.Initialize(); err != nil {
-		panic("failed to initialize lookup: " + err.Error())
-	}
 
 	mux.HandleFunc("GET /api/v1/lookup/word", lookupHandler.LookupWord)
 	mux.HandleFunc("GET /api/v1/lookup/prefix", lookupHandler.PrefixSearch)

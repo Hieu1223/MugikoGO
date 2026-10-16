@@ -5,18 +5,14 @@ import (
 	"net/http"
 
 	"mugiko/internal/modules/core/deck/api/routes/handlers"
-	"mugiko/internal/modules/core/deck/service"
 	"mugiko/internal/modules/core/deck/persistent"
+	"mugiko/internal/modules/core/deck/service"
 )
 
 func RegisterDeckRoutes(mux *http.ServeMux, db *sql.DB) {
 	repo := persistent.NewDeckRepository(db)
 	deckService := service.NewDeckService(repo)
 	deckHandler := handlers.NewDeckHandler(deckService)
-
-	if err := deckService.Initialize(); err != nil {
-		panic("failed to initialize deck: " + err.Error())
-	}
 
 	// Deck routes
 	mux.HandleFunc("POST /api/v1/decks", deckHandler.CreateDeck)

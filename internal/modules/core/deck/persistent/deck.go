@@ -2,10 +2,10 @@ package persistent
 
 import (
 	"database/sql"
-	"fmt"
+
+	"mugiko/internal/modules/core/deck/dto"
 
 	"github.com/google/uuid"
-	"mugiko/internal/modules/core/deck/dto"
 )
 
 type DeckRepository struct {
@@ -76,6 +76,9 @@ func (r *DeckRepository) ListDecks(ownerID uuid.UUID, page, pageSize int) ([]dto
 			return nil, 0, err
 		}
 		decks = append(decks, deck)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
 	}
 
 	return decks, total, nil
@@ -158,6 +161,9 @@ func (r *DeckRepository) ListDeckWords(deckID uuid.UUID, page, pageSize int) ([]
 		}
 		words = append(words, w)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
 
 	return words, total, nil
 }
@@ -195,36 +201,4 @@ func (r *DeckRepository) UpdateDeckWord(wordID uuid.UUID, word, meaning *string)
 func (r *DeckRepository) DeleteDeckWord(wordID uuid.UUID) error {
 	_, err := r.db.Exec(`DELETE FROM deck_words WHERE id = ?`, wordID.String())
 	return err
-}
-
-func (r *DeckRepository) InitializeSchema() error {
-	_, err := r.db.Exec(`
-		CREATE TABLE IF NOT EXISTS decks (
-			id TEXT PRIMARY KEY,
-			owner_id TEXT NOT NULL,
-			name TEXT NOT NULL,
-			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY (owner_id) REFERENCES users(id)
-		);
-
-		CREATE TABLE IF NOT EXISTS deck_words (
-			id TEXT PRIMARY KEY,
-			deck_id TEXT NOT NULL,
-			word TEXT NOT NULL,
-			meaning TEXT NOT NULL,
-			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE CASCADE
-		);
-
-		CREATE INDEX IF NOT EXISTS idx_decks_owner_id ON decks(owner_id);
-		CREATE INDEX IF NOT EXISTS idx_deck_words_deck_id ON deck_words(deck_id);
-	`)
-
-	if err != nil {
-		return fmt.Errorf("failed to create deck tables: %w", err)
-	}
-
-	return nil
 }

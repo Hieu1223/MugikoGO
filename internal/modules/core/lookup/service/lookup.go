@@ -61,8 +61,3 @@ func (s *LookupService) LookupKanji(kanji string) (*dto.KanjiEntry, error) {
 		Unicode:    entry.Unicode,
 	}, nil
 }
-
-func (s *LookupService) Initialize() error {
-	// No initialization needed for binary dictionaries
-	return nil
-}
