@@ -17,8 +17,9 @@ var (
 func InitDB() *sql.DB {
 	once.Do(func() {
 		dbPath := getDBPath()
+		driver := getDBDriver()
 		var err error
-		db, err = sql.Open("postgres", dbPath)
+		db, err = sql.Open(driver, dbPath)
 		if err != nil {
 			log.Fatalf("Failed to open database: %v", err)
 		}
@@ -40,11 +41,19 @@ func GetDB() *sql.DB {
 }
 
 func getDBPath() string {
-	if path := os.Getenv("DB_PATH"); path != "" {
-		return path
+	path := os.Getenv("DB_PATH")
+	if path == "" {
+		panic("Env must contain DB_PATH")
 	}
-	// Default to a local PostgreSQL connection string
-	return "postgres://postgres:postgres@localhost:5432/mugiko?sslmode=disable"
+	return path
+}
+
+func getDBDriver() string {
+	path := os.Getenv("DB_DRIVER")
+	if path == "" {
+		panic("Env must contain DB_DRIVER")
+	}
+	return path
 }
 
 func CloseDB() error {
