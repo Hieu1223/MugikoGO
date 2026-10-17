@@ -456,7 +456,7 @@ func (r *SubtitleRepository) UpsertUserSettings(userID uuid.UUID, schemaVersion 
 // Subtitle user state
 func (r *SubtitleRepository) GetUserState(userID, subtitleID uuid.UUID) (*SubtitleUserState, error) {
 	row := r.db.QueryRow(
-		`SELECT user_id, subtitle_id, schema_version, data, updated_at FROM subtitle_user_state WHERE user_id = $1 AND subtitle_id = $2`,
+		`SELECT user_id, subtitle_id, schema_version, data, updated_at FROM subtitle_user_states WHERE user_id = $1 AND subtitle_id = $2`,
 		userID.String(), subtitleID.String(),
 	)
 
@@ -482,7 +482,7 @@ func (r *SubtitleRepository) UpsertUserState(userID, subtitleID uuid.UUID, schem
 	now := time.Now()
 
 	_, err := r.db.Exec(
-		`INSERT INTO subtitle_user_state (user_id, subtitle_id, schema_version, data, updated_at) VALUES ($1, $2, $3, $4, $5)
+		`INSERT INTO subtitle_user_states (user_id, subtitle_id, schema_version, data, updated_at) VALUES ($1, $2, $3, $4, $5)
 		 ON CONFLICT(user_id, subtitle_id) DO UPDATE SET schema_version = $6, data = $7, updated_at = $8`,
 		userID.String(), subtitleID.String(), schemaVersion, dataStr, now, schemaVersion, dataStr, now,
 	)

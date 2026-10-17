@@ -12,14 +12,31 @@ import (
 
 // parseTime attempts to parse a time string from the database, which may be in various formats.
 func parseTime(s string) (time.Time, error) {
-	if t, err := time.Parse("2006-01-02 15:04:05", s); err == nil {
-		return t, nil
+	// Try various formats that SQLite/PostgreSQL might return
+	formats := []string{
+		"2006-01-02 15:04:05",
+		"2006-01-02 15:04:05-07:00",
+		"2006-01-02 15:04:05.000",
+		"2006-01-02 15:04:05.000-07:00",
+		"2006-01-02 15:04:05.000000",
+		"2006-01-02 15:04:05.000000-07:00",
+		"2006-01-02 15:04:05Z",
+		"2006-01-02 15:04:05.000Z",
+		"2006-01-02 15:04:05.000000Z",
+		"2006-01-02 15:04:05+00:00",
+		"2006-01-02 15:04:05.000+00:00",
+		"2006-01-02 15:04:05.000000+00:00",
+		"2006-01-02 15:04:05+00",
+		"2006-01-02 15:04:05.000+00",
+		"2006-01-02 15:04:05.000000+00",
+		time.RFC3339,
+		time.RFC3339Nano,
 	}
-	if t, err := time.Parse("2006-01-02 15:04:05-07:00", s); err == nil {
-		return t, nil
-	}
-	if t, err := time.Parse(time.RFC3339, s); err == nil {
-		return t, nil
+
+	for _, fmt := range formats {
+		if t, err := time.Parse(fmt, s); err == nil {
+			return t, nil
+		}
 	}
 	return time.Time{}, fmt.Errorf("failed to parse time %q", s)
 }
@@ -208,7 +225,17 @@ func (r *DeckRepository) ListDeckWords(deckID uuid.UUID, page, pageSize int) ([]
 	var words []dto.DeckWordResponse
 	for rows.Next() {
 		var w dto.DeckWordResponse
-		if err := rows.Scan(&w.ID, &w.DeckID, &w.Word, &w.Meaning, &w.CreatedAt, &w.UpdatedAt); err != nil {
+		var createdAtStr, updatedAtStr string
+		if err := rows.Scan(&w.ID, &w.DeckID, &w.Word, &w.Meaning, &createdAtStr, &updatedAtStr); err != nil {
+			return nil, 0, err
+		}
+		// Parse timestamps (SQLite returns them as strings)
+		w.CreatedAt, err = parseTime(createdAtStr)
+		if err != nil {
+			return nil, 0, err
+		}
+		w.UpdatedAt, err = parseTime(updatedAtStr)
+		if err != nil {
 			return nil, 0, err
 		}
 		words = append(words, w)
