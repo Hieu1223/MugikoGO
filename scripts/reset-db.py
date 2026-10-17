@@ -11,21 +11,23 @@ except ImportError:
     sys.exit(1)
 
 TABLES = [
-    "subtitle_user_states",
-    "subtitle_segments",
-    "subtitles",
-    "subtitle_provider_services",
-    "subtitle_providers",
-    "webnovel_paragraphs",
-    "webnovel_chapters",
-    "webnovel_novels",
-    "manga_user_settings",
-    "manga_history",
-    "manga_subscriptions",
-    "manga_providers",
-    "user_profiles",
-    "user_auths",
     "users",
+    "user_profiles",
+    "manga_providers",
+    "manga_subscriptions",
+    "manga_history",
+    "manga_user_settings",
+    "user_settings",
+    "webnovel_novels",
+    "webnovel_chapters",
+    "webnovel_paragraphs",
+    "subtitle_providers",
+    "subtitle_provider_services",
+    "subtitles",
+    "subtitle_segments",
+    "subtitle_user_states",
+    "decks",
+    "deck_words",
 ]
 
 db_url = os.environ.get("DB_PATH")
