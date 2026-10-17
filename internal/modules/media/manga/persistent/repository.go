@@ -111,7 +111,7 @@ func (r *MangaRepository) DeleteProvider(providerID uuid.UUID) error {
 // Subscription methods
 func (r *MangaRepository) Subscribe(userID, providerID uuid.UUID) error {
 	now := time.Now().UTC()
-	_, err := r.db.Exec(`INSERT OR REPLACE INTO manga_subscriptions (user_id, provider_id, created_at) VALUES ($1, $2, $3)`,
+	_, err := r.db.Exec(`INSERT INTO manga_subscriptions (user_id, provider_id, created_at) VALUES ($1, $2, $3) ON CONFLICT (user_id, provider_id) DO UPDATE SET created_at = EXCLUDED.created_at`,
 		userID.String(), providerID.String(), now.Format(time.RFC3339))
 	return err
 }

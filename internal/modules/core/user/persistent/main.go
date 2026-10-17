@@ -23,7 +23,7 @@ func NewUserRepository() *UserRepository {
 func (r *UserRepository) CreateUserAuth(userID uuid.UUID, role dto.Role, authType dto.AuthType, authID string) error {
 	now := time.Now().UTC().Format(time.RFC3339)
 	query := `INSERT INTO users (user_id, role, auth_type, auth_id, is_active, joined_at) 
-	          VALUES ($1, $2, $3, $4, 1, $5)`
+          VALUES ($1, $2, $3, $4, true, $5)`
 	_, err := r.db.Exec(query, userID.String(), role, authType, authID, now)
 	return err
 }
@@ -39,9 +39,9 @@ func (r *UserRepository) GetUserAuthByAuthID(authType dto.AuthType, authID strin
 	row := r.db.QueryRow(query, authType, authID)
 
 	var userIDStr, roleStr, authIDStr, joinedAtStr string
-	var isActiveInt int // Schema uses INTEGER for is_active
+	var isActiveBool bool
 
-	err := row.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveInt)
+	err := row.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveBool)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -60,7 +60,7 @@ func (r *UserRepository) GetUserAuthByAuthID(authType dto.AuthType, authID strin
 		Role:     dto.Role(roleStr),
 		JoinedAt: joinedAt,
 		AuthID:   authIDStr,
-		IsActive: isActiveInt == 1,
+		IsActive: isActiveBool,
 	}, nil
 }
 
@@ -69,9 +69,9 @@ func (r *UserRepository) GetUserAuthByID(userID uuid.UUID) (*dto.AuthData, error
 	row := r.db.QueryRow(query, userID.String())
 
 	var userIDStr, roleStr, authIDStr, joinedAtStr string
-	var isActiveInt int
+	var isActiveBool bool
 
-	err := row.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveInt)
+	err := row.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveBool)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -89,7 +89,7 @@ func (r *UserRepository) GetUserAuthByID(userID uuid.UUID) (*dto.AuthData, error
 		Role:     dto.Role(roleStr),
 		JoinedAt: joinedAt,
 		AuthID:   authIDStr,
-		IsActive: isActiveInt == 1,
+		IsActive: isActiveBool,
 	}, nil
 }
 
@@ -160,9 +160,9 @@ func (r *UserRepository) ListUsers(limit, offset int) ([]*dto.AuthData, error) {
 	var users []*dto.AuthData
 	for rows.Next() {
 		var userIDStr, roleStr, authIDStr, joinedAtStr string
-		var isActiveInt int
+		var isActiveBool bool
 
-		err := rows.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveInt)
+		err := rows.Scan(&userIDStr, &roleStr, &joinedAtStr, &authIDStr, &isActiveBool)
 		if err != nil {
 			return nil, err
 		}
@@ -178,7 +178,7 @@ func (r *UserRepository) ListUsers(limit, offset int) ([]*dto.AuthData, error) {
 			Role:     dto.Role(roleStr),
 			JoinedAt: joinedAt,
 			AuthID:   authIDStr,
-			IsActive: isActiveInt == 1,
+			IsActive: isActiveBool,
 		})
 	}
 	if err := rows.Err(); err != nil {
@@ -204,7 +204,7 @@ func (r *UserRepository) UpdateUserRole(userID uuid.UUID, role dto.Role) error {
 }
 
 func (r *UserRepository) DeactivateUser(userID uuid.UUID) error {
-	query := `UPDATE users SET is_active = 0 WHERE user_id = $1`
+	query := `UPDATE users SET is_active = false WHERE user_id = $1`
 	_, err := r.db.Exec(query, userID.String())
 	return err
 }
@@ -212,7 +212,7 @@ func (r *UserRepository) DeactivateUser(userID uuid.UUID) error {
 func (r *UserRepository) AdminExists() (bool, error) {
 	query := `SELECT 1 FROM users WHERE role = 'admin' LIMIT 1`
 	row := r.db.QueryRow(query)
-	var exists int
+	var exists bool
 	err := row.Scan(&exists)
 	if err == sql.ErrNoRows {
 		return false, nil

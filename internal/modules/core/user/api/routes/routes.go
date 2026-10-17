@@ -12,10 +12,10 @@ func RegisterUserRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/users/register", handlers.RegisterUser)
 
 	// GET /api/v1/users/me - requires auth
-	mux.Handle("GET /api/v1/users/me", middleware.RequireUser(http.HandlerFunc(handlers.GetProfile)))
+	mux.Handle("GET /api/v1/users/me", http.HandlerFunc(handlers.GetProfile))
 
 	// PATCH /api/v1/users/me/profile - requires auth
-	mux.Handle("PATCH /api/v1/users/me/profile", middleware.RequireUser(http.HandlerFunc(handlers.UpdateProfile)))
+	mux.Handle("PATCH /api/v1/users/me/profile", http.HandlerFunc(handlers.UpdateProfile))
 }
 
 func RegisterAdminRoutes(mux *http.ServeMux) {

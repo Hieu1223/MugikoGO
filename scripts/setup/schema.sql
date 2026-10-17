@@ -94,6 +94,18 @@ CREATE TABLE IF NOT EXISTS manga_user_settings (
     updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- User settings (general, used by subtitle module)
+CREATE TABLE IF NOT EXISTS user_settings (
+    user_id        TEXT PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
+    schema_version INTEGER NOT NULL DEFAULT 1,
+    data           JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_settings_user_id
+    ON user_settings(user_id);
+
+
 -- Web novel module
 
 CREATE TABLE IF NOT EXISTS webnovel_novels (
