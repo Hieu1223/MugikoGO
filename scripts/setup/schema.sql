@@ -259,4 +259,9 @@ CREATE INDEX IF NOT EXISTS idx_deck_words_created_at
     ON deck_words(created_at DESC);
 
 
+create publication sequin_pub for table webnovel_novels,subtitles with (publish_via_partition_root = true);
+
+select pg_create_logical_replication_slot('sequin_slot', 'pgoutput');
+
+
 COMMIT;

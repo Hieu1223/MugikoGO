@@ -1,0 +1,3116 @@
+openapi: 3.0.3
+info:
+  title: MugikoGO API
+  version: 1.0.0
+  description: |
+    MugikoGO - Japanese Language Learning Platform API
+    
+    ## Authentication
+    
+    The API uses Bearer token authentication with three token types:
+    
+    | Token Prefix | Type | Description |
+    |-------------|------|-------------|
+    | `user-<firebase_token>` | Firebase User | Authenticated user via Firebase Auth |
+    | `admin-<admin_token>` | Admin | Administrative access |
+    | `anonymous-<token>` | Anonymous | Auto-generated anonymous session |
+    
+    ### Token Format
+    ```
+    Authorization: Bearer user-<firebase_id_token>
+    Authorization: Bearer admin-<admin_token>
+    Authorization: Bearer anonymous-<anonymous_token>
+    ```
+    
+    ### No Token Provided
+    If no `Authorization` header is provided, the server automatically creates a new anonymous user and returns the token in the `Authorization` response header.
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://api.mugiko.example.com
+    description: Production server
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: User
+    description: User registration and profile management
+  - name: Admin
+    description: Administrative user management (requires admin role)
+  - name: Lookup
+    description: Japanese dictionary lookup (public endpoints)
+  - name: Deck
+    description: Flashcard deck and word management
+  - name: Manga
+    description: Manga providers, subscriptions, history, and settings
+  - name: Subtitle
+    description: Subtitle providers, search, segments, and user state
+  - name: WebNovel
+    description: Web novel management, search, and chapter reading
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Use one of the following token formats:
+        - `user-<firebase_id_token>` for authenticated users
+        - `admin-<admin_token>` for admin access
+        - `anonymous-<token>` for anonymous sessions
+  schemas:
+    # Common schemas
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: "Invalid token"
+    
+    # User/Auth schemas
+    AuthType:
+      type: string
+      enum: [firebase, admin, anonymous]
+    
+    Role:
+      type: string
+      enum: [anonymous, user, admin]
+    
+    RegisterRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "John Doe"
+        bio:
+          type: string
+          maxLength: 500
+          example: "Learning Japanese"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+    
+    RegisterResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [anonymous, user, admin]
+        token:
+          type: string
+          example: "user-eyJhbGciOiJSUzI1NiIs..."
+    
+    UserProfileResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        bio:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [anonymous, user, admin]
+        joined_at:
+          type: string
+          format: date-time
+    
+    UserProfileUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        bio:
+          type: string
+          maxLength: 500
+        email:
+          type: string
+          format: email
+    
+    UpdateRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [anonymous, user, admin]
+    
+    UserListResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        bio:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [anonymous, user, admin]
+        joined_at:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+    
+    UserDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/UserListResponse'
+        - type: object
+          properties:
+            auth_type:
+              type: string
+              enum: [firebase, admin, anonymous]
+            auth_id:
+              type: string
+    
+    # Deck schemas
+    Deck:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    
+    DeckCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+    
+    DeckUpdateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+    
+    DeckResponse:
+      allOf:
+        - $ref: '#/components/schemas/Deck'
+    
+    DeckWord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        deck_id:
+          type: string
+          format: uuid
+        word:
+          type: string
+        meaning:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    
+    DeckWordCreateRequest:
+      type: object
+      required: [word, meaning]
+      properties:
+        word:
+          type: string
+          minLength: 1
+          maxLength: 255
+        meaning:
+          type: string
+          minLength: 1
+    
+    DeckWordUpdateRequest:
+      type: object
+      properties:
+        word:
+          type: string
+          minLength: 1
+          maxLength: 255
+        meaning:
+          type: string
+          minLength: 1
+    
+    DeckWordResponse:
+      allOf:
+        - $ref: '#/components/schemas/DeckWord'
+    
+    PaginatedDecksResponse:
+      type: object
+      properties:
+        decks:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeckResponse'
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+    
+    PaginatedDeckWordsResponse:
+      type: object
+      properties:
+        words:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeckWordResponse'
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+    
+    # Lookup schemas
+    DictionaryEntry:
+      type: object
+      properties:
+        word:
+          type: string
+        readings:
+          type: array
+          items:
+            $ref: '#/components/schemas/DictionaryReading'
+    
+    DictionaryReading:
+      type: object
+      properties:
+        kana:
+          type: string
+        meaning:
+          type: string
+    
+    KanjiEntry:
+      type: object
+      properties:
+        kanji:
+          type: string
+        reading:
+          type: string
+        meanings:
+          type: string
+        strokes:
+          type: integer
+        radical:
+          type: string
+        penstrokes:
+          type: string
+        shape:
+          type: string
+        unicode:
+          type: string
+    
+    PrefixSearchResult:
+      type: object
+      properties:
+        words:
+          type: array
+          items:
+            type: string
+    
+    PrefixSearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: string
+        limit:
+          type: integer
+    
+    WordLookupRequest:
+      type: object
+      required: [word]
+      properties:
+        word:
+          type: string
+          minLength: 1
+          maxLength: 100
+    
+    PrefixSearchRequest:
+      type: object
+      required: [prefix]
+      properties:
+        prefix:
+          type: string
+          minLength: 1
+          maxLength: 50
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 50
+    
+    KanjiLookupRequest:
+      type: object
+      required: [kanji]
+      properties:
+        kanji:
+          type: string
+          minLength: 1
+          maxLength: 1
+    
+    # Manga schemas
+    ProviderVisibility:
+      type: string
+      enum: [public, private]
+    
+    MangaProviderDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        base_url:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/ProviderVisibility'
+        is_builtin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    
+    MangaSubscriptionDTO:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        provider_id:
+          type: string
+          format: uuid
+        provider:
+          $ref: '#/components/schemas/MangaProviderDTO'
+        created_at:
+          type: string
+          format: date-time
+    
+    MangaHistoryDTO:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        provider_id:
+          type: string
+          format: uuid
+        manga_id:
+          type: string
+        chapter_id:
+          type: string
+        page_index:
+          type: integer
+        title:
+          type: string
+        cover_url:
+          type: string
+        last_read_at:
+          type: string
+          format: date-time
+        provider:
+          $ref: '#/components/schemas/MangaProviderDTO'
+    
+    MangaUserSettingsDTO:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: integer
+        data:
+          type: object
+        updated_at:
+          type: string
+          format: date-time
+    
+    BuiltinProviderInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        api_version:
+          type: string
+    
+    BuiltinTagResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+    
+    BuiltinTagListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuiltinTagResponse'
+    
+    BuiltinChapterSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+    
+    BuiltinMangaSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        title:
+          type: string
+        alternative_titles:
+          type: array
+          items:
+            type: string
+        cover_url:
+          type: string
+        thumbnail_url:
+          type: string
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuiltinTagResponse'
+        score:
+          type: number
+        views:
+          type: integer
+        latest_chapters:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuiltinChapterSummary'
+        updated_at:
+          type: string
+          format: date-time
+    
+    BuiltinMangaListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuiltinMangaSummary'
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total:
+          type: integer
+    
+    BuiltinMangaDetail:
+      allOf:
+        - $ref: '#/components/schemas/BuiltinMangaSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+            source_url:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+    
+    BuiltinChapterDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        manga_id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        title:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuiltinPageResponse'
+    
+    BuiltinChapterListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuiltinChapterSummary'
+    
+    BuiltinPageResponse:
+      type: object
+      properties:
+        index:
+          type: integer
+        width:
+          type: integer
+        height:
+          type: integer
+        urls:
+          type: array
+          items:
+            type: string
+    
+    BuiltinPageListResponse:
+      type: object
+      properties:
+        width:
+          type: integer
+        height:
+          type: integer
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuiltinPageResponse'
+    
+    CreateProviderRequest:
+      type: object
+      required: [name, base_url]
+      properties:
+        name:
+          type: string
+        base_url:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/ProviderVisibility'
+    
+    UpdateProviderRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        base_url:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/ProviderVisibility'
+    
+    SubscribeRequest:
+      type: object
+      required: [provider_id]
+      properties:
+        provider_id:
+          type: string
+          format: uuid
+    
+    UpsertHistoryRequest:
+      type: object
+      required: [provider_id, manga_id, chapter_id, title]
+      properties:
+        provider_id:
+          type: string
+          format: uuid
+        manga_id:
+          type: string
+        chapter_id:
+          type: string
+        page_index:
+          type: integer
+        title:
+          type: string
+        cover_url:
+          type: string
+    
+    UpdateSettingsRequest:
+      type: object
+      properties:
+        schema_version:
+          type: integer
+        data:
+          type: object
+    
+    # Subtitle schemas
+    ProviderKind:
+      type: string
+      enum: [remote, youtube]
+    
+    SubtitleProviderCreate:
+      type: object
+      required: [name, kind]
+      properties:
+        name:
+          type: string
+        kind:
+          $ref: '#/components/schemas/ProviderKind'
+        base_url:
+          type: string
+    
+    SubtitleProviderServiceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider_id:
+          type: string
+          format: uuid
+        service_key:
+          type: string
+        name:
+          type: string
+        options:
+          type: object
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    
+    SubtitleProviderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kind:
+          $ref: '#/components/schemas/ProviderKind'
+        base_url:
+          type: string
+        is_active:
+          type: boolean
+        last_synced_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubtitleProviderServiceResponse'
+    
+    SubtitleCreate:
+      type: object
+      required: [video_url, provider_id, service_key]
+      properties:
+        video_url:
+          type: string
+        provider_id:
+          type: string
+          format: uuid
+        service_key:
+          type: string
+    
+    SubtitleSegmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        subtitle_id:
+          type: string
+          format: uuid
+        idx:
+          type: integer
+        start_ms:
+          type: integer
+        end_ms:
+          type: integer
+        words:
+          type: object
+    
+    SubtitleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        video_id:
+          type: string
+        video_url:
+          type: string
+        provider_id:
+          type: string
+          format: uuid
+        service_id:
+          type: string
+          format: uuid
+        created_by:
+          type: string
+          format: uuid
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    
+    SubtitleSegmentsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubtitleSegmentResponse'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+    
+    SubtitleListResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        video_id:
+          type: string
+        video_url:
+          type: string
+        provider_id:
+          type: string
+          format: uuid
+        service_id:
+          type: string
+          format: uuid
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        segment_count:
+          type: integer
+    
+    UserSettingsResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: integer
+        data:
+          type: object
+        updated_at:
+          type: string
+          format: date-time
+    
+    UserSettingsUpdate:
+      type: object
+      required: [schema_version, data]
+      properties:
+        schema_version:
+          type: integer
+        data:
+          type: object
+    
+    SubtitleUserStateResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        subtitle_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: integer
+        data:
+          type: object
+        updated_at:
+          type: string
+          format: date-time
+    
+    SubtitleUserStateUpdate:
+      type: object
+      required: [schema_version, data]
+      properties:
+        schema_version:
+          type: integer
+        data:
+          type: object
+    
+    SubtitleHistoryResponse:
+      type: object
+      properties:
+        subtitle_id:
+          type: string
+          format: uuid
+        video_id:
+          type: string
+        video_url:
+          type: string
+        last_accessed_at:
+          type: string
+          format: date-time
+        segment_count:
+          type: integer
+    
+    SubtitleHistoryListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubtitleHistoryResponse'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+    
+    # WebNovel schemas
+    SourceEnum:
+      type: string
+      enum: [syosetsu]
+    
+    NovelDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        source_id:
+          type: string
+        url:
+          type: string
+        title:
+          type: string
+        author:
+          type: string
+        synopsis:
+          type: string
+        added_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+    
+    ChapterDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        novel_id:
+          type: string
+          format: uuid
+        idx:
+          type: integer
+        title:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    
+    ParagraphDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        chapter_id:
+          type: string
+          format: uuid
+        idx:
+          type: integer
+        text:
+          type: string
+        words:
+          type: array
+          items:
+            type: string
+    
+    PreviewRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+    
+    PreviewResponse:
+      type: object
+      properties:
+        url:
+          type: string
+        title:
+          type: string
+        author:
+          type: string
+        synopsis:
+          type: string
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+    
+    AddNovelRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+    
+    AddNovelResponse:
+      type: object
+      properties:
+        novel:
+          $ref: '#/components/schemas/NovelDTO'
+        job_id:
+          type: string
+    
+    PaginatedNovelsResponse:
+      type: object
+      properties:
+        novels:
+          type: array
+          items:
+            $ref: '#/components/schemas/NovelDTO'
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+    
+    NovelWithChaptersResponse:
+      allOf:
+        - $ref: '#/components/schemas/NovelDTO'
+        - type: object
+          properties:
+            chapters:
+              type: array
+              items:
+                $ref: '#/components/schemas/ChapterDTO'
+    
+    ChapterResponse:
+      allOf:
+        - $ref: '#/components/schemas/ChapterDTO'
+        - type: object
+          properties:
+            paragraphs:
+              type: array
+              items:
+                $ref: '#/components/schemas/ParagraphDTO'
+    
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+        limit:
+          type: integer
+    
+    SearchResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/NovelDTO'
+        total:
+          type: integer
+    
+    SyncRequest:
+      type: object
+      properties:
+        force:
+          type: boolean
+          default: false
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check endpoint
+      description: Public endpoint - no authentication required
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+  
+  # ==================== USER ROUTES ====================
+  /api/v1/users/register:
+    post:
+      tags: [User]
+      summary: Register a new user
+      description: |
+        Register a new user using a Firebase ID token.
+        The token should be sent as `Authorization: Bearer user-<firebase_id_token>`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+          headers:
+            Authorization:
+              description: Bearer token for the new user
+              schema:
+                type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid Firebase token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/users/me:
+    get:
+      tags: [User]
+      summary: Get current user profile
+      description: Requires authentication (any valid token)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+    patch:
+      tags: [User]
+      summary: Update current user profile
+      description: Requires authentication (any valid token)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ==================== ADMIN ROUTES ====================
+  /api/v1/admin/users:
+    get:
+      tags: [Admin]
+      summary: List all users
+      description: Requires admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/admin/users/{user_id}:
+    get:
+      tags: [Admin]
+      summary: Get user detail by ID
+      description: Requires admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/admin/users/{user_id}/role:
+    patch:
+      tags: [Admin]
+      summary: Update user role
+      description: Requires admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleRequest'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailResponse'
+        '400':
+          description: Invalid role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/admin/users/{user_id}/deactivate:
+    patch:
+      tags: [Admin]
+      summary: Deactivate a user
+      description: Requires admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ==================== LOOKUP ROUTES ====================
+  /api/v1/lookup/word:
+    get:
+      tags: [Lookup]
+      summary: Lookup word definition
+      description: Public endpoint - no authentication required
+      parameters:
+        - name: word
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+      responses:
+        '200':
+          description: Word definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DictionaryEntry'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/lookup/prefix:
+    get:
+      tags: [Lookup]
+      summary: Prefix search
+      description: Public endpoint - no authentication required
+      parameters:
+        - name: prefix
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 50
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+      responses:
+        '200':
+          description: Prefix search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrefixSearchResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/lookup/kanji:
+    get:
+      tags: [Lookup]
+      summary: Lookup kanji
+      description: Public endpoint - no authentication required
+      parameters:
+        - name: kanji
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 1
+      responses:
+        '200':
+          description: Kanji details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KanjiEntry'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ==================== DECK ROUTES ====================
+  /api/v1/decks:
+    post:
+      tags: [Deck]
+      summary: Create a new deck
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeckCreateRequest'
+      responses:
+        '201':
+          description: Deck created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags: [Deck]
+      summary: List user's decks
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated list of decks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDecksResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/decks/{id}:
+    get:
+      tags: [Deck]
+      summary: Get deck by ID
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deck details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Deck not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    patch:
+      tags: [Deck]
+      summary: Update deck
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeckUpdateRequest'
+      responses:
+        '200':
+          description: Deck updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Deck not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags: [Deck]
+      summary: Delete deck
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Deck deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Deck not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/decks/{deck_id}/words:
+    post:
+      tags: [Deck]
+      summary: Add word to deck
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: deck_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeckWordCreateRequest'
+      responses:
+        '201':
+          description: Word added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckWordResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Deck not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags: [Deck]
+      summary: List words in deck
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: deck_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated list of words
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDeckWordsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Deck not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/decks/{deck_id}/words/{word_id}:
+    patch:
+      tags: [Deck]
+      summary: Update word in deck
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: deck_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: word_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeckWordUpdateRequest'
+      responses:
+        '200':
+          description: Word updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckWordResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Word not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags: [Deck]
+      summary: Delete word from deck
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: deck_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: word_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Word deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Word not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ==================== MANGA ROUTES ====================
+  /api/v1/manga/providers:
+    get:
+      tags: [Manga]
+      summary: List all providers (admin/owner)
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MangaProviderDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      tags: [Manga]
+      summary: Create a new provider
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProviderRequest'
+      responses:
+        '201':
+          description: Provider created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaProviderDTO'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/manga/providers/{provider_id}:
+    get:
+      tags: [Manga]
+      summary: Get provider by ID
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Provider details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaProviderDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags: [Manga]
+      summary: Update provider
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProviderRequest'
+      responses:
+        '200':
+          description: Provider updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaProviderDTO'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags: [Manga]
+      summary: Delete provider
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Provider deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/manga/providers/public:
+    get:
+      tags: [Manga]
+      summary: List public built-in providers
+      description: Public endpoint - no authentication required
+      responses:
+        '200':
+          description: List of public providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MangaProviderDTO'
+  
+  /api/v1/manga/providers/subscribable:
+    get:
+      tags: [Manga]
+      summary: List subscribable providers
+      description: Public endpoint - no authentication required
+      responses:
+        '200':
+          description: List of subscribable providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MangaProviderDTO'
+  
+  /api/v1/manga/providers/{provider_id}/subscribe:
+      post:
+        tags: [Manga]
+        summary: Subscribe to a provider
+        description: Requires user or admin role
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: provider_id
+            in: path
+            required: true
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '200':
+            description: Subscribed successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/MangaSubscriptionDTO'
+          '401':
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '403':
+            description: Forbidden - user role required
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '404':
+            description: Provider not found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+      delete:
+        tags: [Manga]
+        summary: Unsubscribe from a provider
+        description: Requires user or admin role
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: provider_id
+            in: path
+            required: true
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '204':
+            description: Unsubscribed successfully
+          '401':
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '403':
+            description: Forbidden - user role required
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '404':
+            description: Provider not found or not subscribed
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+  
+  /api/v1/manga/subscriptions:
+    get:
+      tags: [Manga]
+      summary: List user's subscriptions
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MangaSubscriptionDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/manga/providers/{provider_id}/subscribed:
+    get:
+      tags: [Manga]
+      summary: Check if user is subscribed to provider
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Subscription status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscribed:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/manga/history:
+    post:
+      tags: [Manga]
+      summary: Upsert reading history
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertHistoryRequest'
+      responses:
+        '200':
+          description: History upserted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaHistoryDTO'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags: [Manga]
+      summary: Get user's reading history
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Reading history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MangaHistoryDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/manga/providers/{provider_id}/history/{manga_id}:
+    delete:
+      tags: [Manga]
+      summary: Delete history entry
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: manga_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: History entry deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: History entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/users/me/manga-settings:
+    get:
+      tags: [Manga]
+      summary: Get user manga settings
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaUserSettingsDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags: [Manga]
+      summary: Update user manga settings
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSettingsRequest'
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaUserSettingsDTO'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ==================== SUBTITLE ROUTES ====================
+  /api/v1/subtitle-providers:
+    get:
+      tags: [Subtitle]
+      summary: List subtitle providers
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubtitleProviderResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      tags: [Subtitle]
+      summary: Create subtitle provider
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubtitleProviderCreate'
+      responses:
+        '201':
+          description: Provider created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubtitleProviderResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/subtitles:
+    get:
+      tags: [Subtitle]
+      summary: Search subtitles
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: video_url
+          in: query
+          schema:
+            type: string
+        - name: provider_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubtitleListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      tags: [Subtitle]
+      summary: Create subtitle
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubtitleCreate'
+      responses:
+        '201':
+          description: Subtitle created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubtitleResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/subtitles/{subtitle_id}:
+    get:
+      tags: [Subtitle]
+      summary: Get subtitle by ID
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subtitle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Subtitle details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubtitleResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Subtitle not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/subtitles/{subtitle_id}/segments:
+    get:
+      tags: [Subtitle]
+      summary: Get subtitle segments
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subtitle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Subtitle segments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubtitleSegmentsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Subtitle not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/users/me/subtitle-history:
+    get:
+      tags: [Subtitle]
+      summary: Get user's subtitle history
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: User's subtitle history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubtitleHistoryListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/users/me/subtitle-settings:
+    get:
+      tags: [Subtitle]
+      summary: Get user subtitle settings
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettingsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags: [Subtitle]
+      summary: Update user subtitle settings
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettingsUpdate'
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettingsResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/subtitles/{subtitle_id}/state:
+    get:
+      tags: [Subtitle]
+      summary: Get user's subtitle state
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subtitle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User's subtitle state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubtitleUserStateResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: State not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags: [Subtitle]
+      summary: Update user's subtitle state
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subtitle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubtitleUserStateUpdate'
+      responses:
+        '200':
+          description: State updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubtitleUserStateResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: State not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ==================== WEBNOVEL ROUTES ====================
+  /api/v1/webnovel/novels:
+    post:
+      tags: [WebNovel]
+      summary: Add a novel from URL
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddNovelRequest'
+      responses:
+        '201':
+          description: Novel added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddNovelResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags: [WebNovel]
+      summary: List user's novels
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: User's novels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNovelsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/webnovel/novels/all:
+    get:
+      tags: [WebNovel]
+      summary: List all novels (public)
+      description: Public endpoint - no authentication required
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: All novels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNovelsResponse'
+  
+  /api/v1/webnovel/novels/{novel_id}:
+    get:
+      tags: [WebNovel]
+      summary: Get novel with chapters
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: novel_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Novel with chapters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NovelWithChaptersResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Novel not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/webnovel/preview:
+    post:
+      tags: [WebNovel]
+      summary: Preview novel from URL
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreviewRequest'
+      responses:
+        '200':
+          description: Preview data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/webnovel/search:
+    post:
+      tags: [WebNovel]
+      summary: Search novels
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/webnovel/chapters/{chapter_id}:
+    get:
+      tags: [WebNovel]
+      summary: Get chapter with paragraphs
+      description: Requires user or admin role
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: chapter_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chapter with paragraphs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Chapter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

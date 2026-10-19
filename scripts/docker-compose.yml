@@ -14,6 +14,56 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    # Enable logical replication for Sequin/CDC
+    command: >
+      postgres 
+      -c wal_level=logical 
+      -c max_replication_slots=4 
+      -c max_wal_senders=4
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mugiko"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  sequin_redis:
+    image: redis:7-alpine
+    container_name: mugiko_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  sequin:
+    image: sequin/sequin:latest
+    container_name: mugiko_sequin
+    pull_policy: always
+    ports:
+      - "7376:7376"
+    environment:
+      - PG_HOSTNAME=postgres
+      - PG_DATABASE=mugiko
+      - PG_PORT=5432
+      - PG_USERNAME=postgres
+      - PG_PASSWORD=postgres
+      - PG_POOL_SIZE=20
+      # Un-comment for SSL
+      # - PG_SSL=true
+      - SECRET_KEY_BASE=wDPLYus0pvD6qJhKJICO4dauYPXfO/Yl782Zjtpew5qRBDp7CZvbWtQmY0eB13If
+      - VAULT_KEY=2Sig69bIpuSm2kv0VQfDekET2qy8qUZGI8v3/h3ASiY=
+      - REDIS_URL=redis://sequin_redis:6379
+      - CONFIG_FILE_PATH=/config/playground.yml
+    volumes:
+      - ./playground.yml:/config/playground.yml
+    depends_on:
+      sequin_redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  rabbitmq_data:
+  redis_data:
