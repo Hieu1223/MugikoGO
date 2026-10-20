@@ -10,6 +10,13 @@ import argparse
 import psycopg2
 import subprocess
 
+# Windows consoles (e.g. cp932) may not be able to encode the emoji output
+# used below; reconfigure to UTF-8 with replacement so real errors are shown.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 
 def get_db_path():
     """Get database path from environment or default."""

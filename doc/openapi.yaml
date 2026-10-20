@@ -44,6 +44,8 @@ tags:
     description: Manga providers, subscriptions, history, and settings
   - name: Subtitle
     description: Subtitle providers, search, segments, and user state
+  - name: OCR
+    description: Asynchronous OCR jobs for images
   - name: WebNovel
     description: Web novel management, search, and chapter reading
 components:
@@ -929,6 +931,73 @@ components:
           type: integer
         offset:
           type: integer
+    
+    # OCR schemas
+    PaddleOCRData:
+      type: object
+      description: PaddleOCR output with confidence scores omitted.
+      required: [dt_polys, rec_texts, rec_polys]
+      properties:
+        dt_polys:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                format: float
+        rec_texts:
+          type: array
+          items:
+            type: string
+        rec_polys:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                format: float
+    
+    OCRCreate:
+      type: object
+      required: [image_url]
+      properties:
+        image_url:
+          type: string
+          format: uri
+          example: "https://example.com/page.jpg"
+    
+    OCRResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        image_url:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        ocr_data:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/PaddleOCRData'
+        error:
+          type: string
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
     
     # WebNovel schemas
     SourceEnum:
@@ -2851,6 +2920,43 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           description: State not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  # ==================== OCR ROUTES ====================
+  /api/v1/ocr:
+    post:
+      tags: [OCR]
+      summary: Create an OCR job
+      description: |
+        Creates a queued OCR job for an image URL. The actual OCR is performed
+        asynchronously by an external worker, which fills `ocr_data` later.
+        Anonymous users are allowed.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OCRCreate'
+      responses:
+        '201':
+          description: OCR job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OCRResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:

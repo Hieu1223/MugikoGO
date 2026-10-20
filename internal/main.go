@@ -10,6 +10,7 @@ import (
 	userhandlers "mugiko/internal/modules/core/user/api/routes/handlers"
 	user "mugiko/internal/modules/core/user/middleware"
 	mangaroutes "mugiko/internal/modules/media/manga/api/routes"
+	ocrroutes "mugiko/internal/modules/media/ocr/api/routes"
 	subtitleroutes "mugiko/internal/modules/media/subtitle/api/routes"
 	webnovelroutes "mugiko/internal/modules/media/webnovel/api/routes"
 	"net/http"
@@ -38,6 +39,9 @@ func Run() {
 
 	// Register subtitle routes
 	subtitleroutes.RegisterSubtitleRoutes(mux, db)
+
+	// Register OCR routes
+	ocrroutes.RegisterOCRRoutes(mux, db)
 
 	// Register manga routes
 	mangaroutes.RegisterMangaRoutes(mux, db)
