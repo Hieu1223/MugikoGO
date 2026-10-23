@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"mugiko/internal/common/api"
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 	"mugiko/internal/modules/core/user/middleware"
@@ -16,14 +17,14 @@ import (
 func ListUsers(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil || auth.Role != dto.RoleAdmin {
-		api.WriteError(w, exception.MsgForbidden, exception.StatusForbidden)
+		api.WriteError(w, commonexception.MsgForbidden, exception.StatusForbidden)
 		return
 	}
 
 	userService := service.NewUserService()
 	users, err := userService.ListUsers(100, 0)
 	if err != nil {
-		api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
+		api.WriteError(w, commonexception.MsgInvalidToken, exception.StatusInvalidToken)
 		return
 	}
 
@@ -34,14 +35,14 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 func GetUserDetail(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil || auth.Role != dto.RoleAdmin {
-		api.WriteError(w, exception.MsgForbidden, exception.StatusForbidden)
+		api.WriteError(w, commonexception.MsgForbidden, exception.StatusForbidden)
 		return
 	}
 
 	userIDStr := r.PathValue("user_id")
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
+		api.WriteError(w, commonexception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 		return
 	}
 
@@ -70,14 +71,14 @@ func GetUserDetail(w http.ResponseWriter, r *http.Request) {
 func UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil || auth.Role != dto.RoleAdmin {
-		api.WriteError(w, exception.MsgForbidden, exception.StatusForbidden)
+		api.WriteError(w, commonexception.MsgForbidden, exception.StatusForbidden)
 		return
 	}
 
 	userIDStr := r.PathValue("user_id")
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
+		api.WriteError(w, commonexception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 		return
 	}
 
@@ -85,7 +86,7 @@ func UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 		Role string `json:"role"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, exception.StatusInvalidTokenFormat)
 		return
 	}
 
@@ -115,14 +116,14 @@ func UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 func DeactivateUser(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil || auth.Role != dto.RoleAdmin {
-		api.WriteError(w, exception.MsgForbidden, exception.StatusForbidden)
+		api.WriteError(w, commonexception.MsgForbidden, exception.StatusForbidden)
 		return
 	}
 
 	userIDStr := r.PathValue("user_id")
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
+		api.WriteError(w, commonexception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 		return
 	}
 

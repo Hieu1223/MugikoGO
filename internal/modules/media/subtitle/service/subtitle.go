@@ -2,12 +2,13 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 
 	"mugiko/internal/modules/media/subtitle/dto"
+	"mugiko/internal/modules/media/subtitle/exception"
 	"mugiko/internal/modules/media/subtitle/persistent"
 )
 
@@ -101,7 +102,7 @@ func (s *SubtitleService) CreateSubtitle(userID uuid.UUID, data dto.SubtitleCrea
 	// Extract video ID from YouTube URL
 	videoID := extractVideoID(data.VideoURL)
 	if videoID == "" {
-		return nil, fmt.Errorf("invalid video URL")
+		return nil, errors.New(exception.MsgInvalidVideoURL)
 	}
 
 	// Verify provider exists
@@ -199,7 +200,7 @@ func (s *SubtitleService) GetSubtitleSegments(subtitleID uuid.UUID, limit, offse
 func (s *SubtitleService) SearchSubtitles(videoURL string, limit, offset int) ([]*dto.SubtitleListResponse, error) {
 	videoID := extractVideoID(videoURL)
 	if videoID == "" {
-		return nil, fmt.Errorf("invalid video URL")
+		return nil, errors.New(exception.MsgInvalidVideoURL)
 	}
 
 	subtitles, err := s.repo.GetSubtitlesByVideoID(videoID, limit, offset)

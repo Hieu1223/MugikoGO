@@ -1,13 +1,11 @@
 package exception
 
 const (
-	MsgForbidden               = "Forbidden"
-	MsgInvalidToken            = "Invalid token"
-	MsgInvalidTokenFormat      = "Invalid token format"
-	MsgUserNotFound            = "User not found"
-	MsgUnauthorized            = "Unauthorized"
-	MsgProfileNotFound         = "Profile not found"
-	MsgAnonymousAuthNotCreated = "Auth is Null"
-	MsgUserExists              = "User exists"
-	ErrInvalidRole             = "Invalid Role"
+	MsgUserNotFound                       = "User not found"
+	MsgProfileNotFound                    = "Profile not found"
+	MsgAnonymousAuthNotCreated            = "Auth is Null"
+	MsgUserExists                         = "User exists"
+	MsgInvalidRole                        = "Invalid Role"
+	MsgFirebaseVerificationNotImplemented = "Firebase token verification not implemented"
+	MsgFailedToParseJoinedAt              = "failed to parse joined_at: %w"
 )

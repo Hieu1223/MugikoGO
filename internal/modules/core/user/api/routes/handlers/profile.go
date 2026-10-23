@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"mugiko/internal/common/api"
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/exception"
 	"mugiko/internal/modules/core/user/middleware"
 	"mugiko/internal/modules/core/user/service"
@@ -13,7 +14,7 @@ import (
 func GetProfile(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil {
-		api.WriteError(w, exception.MsgUnauthorized, exception.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, exception.StatusUnauthorized)
 		return
 	}
 
@@ -31,7 +32,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil {
-		api.WriteError(w, exception.MsgUnauthorized, exception.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, exception.StatusUnauthorized)
 		return
 	}
 
@@ -41,7 +42,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		Email *string `json:"email,omitempty"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, exception.StatusInvalidTokenFormat)
 		return
 	}
 

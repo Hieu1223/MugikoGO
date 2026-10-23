@@ -60,8 +60,8 @@ run-dev: build
 
 setup:
 	@echo "Running database setup..."
-	$(PYTHON) $(SCRIPTS_DIR)/common/run_sql.py -f $(SCRIPTS_DIR)/setup/schema.sql
-	$(PYTHON) $(SCRIPTS_DIR)/common/run_sql.py -f $(SCRIPTS_DIR)/setup/seed.sql
+	$(PYTHON) $(SCRIPTS_DIR)/common/run_sql.py -f $(SCRIPTS_DIR)/sql/setup/schema.sql
+	$(PYTHON) $(SCRIPTS_DIR)/common/run_sql.py -f $(SCRIPTS_DIR)/sql/setup/seed.sql
 
 # ==============================================================================
 # Cleanup

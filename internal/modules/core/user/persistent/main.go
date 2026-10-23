@@ -8,6 +8,7 @@ import (
 
 	"mugiko/internal/common/persistent"
 	"mugiko/internal/modules/core/user/dto"
+	"mugiko/internal/modules/core/user/exception"
 
 	"github.com/google/uuid"
 )
@@ -52,7 +53,7 @@ func (r *UserRepository) GetUserAuthByAuthID(authType dto.AuthType, authID strin
 	userID, _ := uuid.Parse(userIDStr)
 	joinedAt, err := time.Parse(time.RFC3339, joinedAtStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse joined_at: %w", err)
+		return nil, fmt.Errorf(exception.MsgFailedToParseJoinedAt, err)
 	}
 
 	return &dto.AuthData{
@@ -81,7 +82,7 @@ func (r *UserRepository) GetUserAuthByID(userID uuid.UUID) (*dto.AuthData, error
 
 	joinedAt, err := time.Parse(time.RFC3339, joinedAtStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse joined_at: %w", err)
+		return nil, fmt.Errorf(exception.MsgFailedToParseJoinedAt, err)
 	}
 
 	return &dto.AuthData{
@@ -170,7 +171,7 @@ func (r *UserRepository) ListUsers(limit, offset int) ([]*dto.AuthData, error) {
 		userID, _ := uuid.Parse(userIDStr)
 		joinedAt, err := time.Parse(time.RFC3339, joinedAtStr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse joined_at: %w", err)
+			return nil, fmt.Errorf(exception.MsgFailedToParseJoinedAt, err)
 		}
 
 		users = append(users, &dto.AuthData{

@@ -4,26 +4,28 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+
+	"mugiko/internal/modules/core/lookup/exception"
 )
 
 func NewBinaryDictionaryProvider(dictPath string) (*BinaryDictionaryProvider, error) {
 	data, err := os.ReadFile(dictPath)
 	if err != nil {
-		return nil, fmt.Errorf("dictionary file not found: %s", dictPath)
+		return nil, fmt.Errorf(exception.MsgDictionaryFileNotFound, dictPath)
 	}
 
 	if len(data) < 24 {
-		return nil, fmt.Errorf("file too small for header")
+		return nil, fmt.Errorf(exception.MsgFileTooSmallForHeader)
 	}
 
 	magic := string(data[0:4])
 	if magic != MUGIMagic {
-		return nil, fmt.Errorf("invalid magic: %s, expected %s", magic, MUGIMagic)
+		return nil, fmt.Errorf(exception.MsgInvalidMagic, magic, MUGIMagic)
 	}
 
 	version := binary.LittleEndian.Uint32(data[4:8])
 	if version != MUGIVersion {
-		return nil, fmt.Errorf("unsupported version: %d", version)
+		return nil, fmt.Errorf(exception.MsgUnsupportedVersion, version)
 	}
 
 	provider := &BinaryDictionaryProvider{
@@ -207,21 +209,21 @@ const (
 func NewKanjiDictionaryProvider(dictPath string) (*KanjiDictionaryProvider, error) {
 	data, err := os.ReadFile(dictPath)
 	if err != nil {
-		return nil, fmt.Errorf("kanji dictionary file not found: %s", dictPath)
+		return nil, fmt.Errorf(exception.MsgKanjiDictionaryFileNotFound, dictPath)
 	}
 
 	if len(data) < 16 {
-		return nil, fmt.Errorf("file too small for header")
+		return nil, fmt.Errorf(exception.MsgFileTooSmallForHeader)
 	}
 
 	magic := string(data[0:4])
 	if magic != KANJMagic {
-		return nil, fmt.Errorf("invalid magic: %s, expected %s", magic, KANJMagic)
+		return nil, fmt.Errorf(exception.MsgInvalidMagic, magic, KANJMagic)
 	}
 
 	version := binary.LittleEndian.Uint32(data[4:8])
 	if version != KANJVersion {
-		return nil, fmt.Errorf("unsupported version: %d", version)
+		return nil, fmt.Errorf(exception.MsgUnsupportedVersion, version)
 	}
 
 	provider := &KanjiDictionaryProvider{

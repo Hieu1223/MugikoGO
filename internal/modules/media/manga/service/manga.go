@@ -2,10 +2,13 @@ package service
 
 import (
 	"database/sql"
+	"net/http"
+
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/middleware"
 	"mugiko/internal/modules/media/manga/dto"
+	"mugiko/internal/modules/media/manga/exception"
 	"mugiko/internal/modules/media/manga/persistent"
-	"net/http"
 
 	"github.com/google/uuid"
 )
@@ -345,11 +348,11 @@ func (s *MangaService) ToProviderDTOs(providers []*persistent.MangaProvider) []*
 
 // Errors
 var (
-	ErrUnauthorized          = &ServiceError{Code: "UNAUTHORIZED", Status: http.StatusUnauthorized, Message: "Authentication required"}
-	ErrForbidden             = &ServiceError{Code: "FORBIDDEN", Status: http.StatusForbidden, Message: "Access denied"}
-	ErrProviderAlreadyExists = &ServiceError{Code: "PROVIDER_EXISTS", Status: http.StatusConflict, Message: "Provider already exists"}
-	ErrMangaNotFound         = &ServiceError{Code: "MANGA_NOT_FOUND", Status: http.StatusNotFound, Message: "Manga not found"}
-	ErrNotImplemented        = &ServiceError{Code: "NOT_IMPLEMENTED", Status: http.StatusNotImplemented, Message: "Not implemented"}
+	ErrUnauthorized          = &ServiceError{Code: "UNAUTHORIZED", Status: http.StatusUnauthorized, Message: commonexception.MsgUnauthorized}
+	ErrForbidden             = &ServiceError{Code: "FORBIDDEN", Status: http.StatusForbidden, Message: exception.MsgAccessDenied}
+	ErrProviderAlreadyExists = &ServiceError{Code: "PROVIDER_EXISTS", Status: http.StatusConflict, Message: exception.MsgProviderAlreadyExists}
+	ErrMangaNotFound         = &ServiceError{Code: "MANGA_NOT_FOUND", Status: http.StatusNotFound, Message: exception.MsgMangaNotFound}
+	ErrNotImplemented        = &ServiceError{Code: "NOT_IMPLEMENTED", Status: http.StatusNotImplemented, Message: exception.MsgNotImplemented}
 )
 
 type ServiceError struct {

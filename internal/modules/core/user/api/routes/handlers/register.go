@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"mugiko/internal/common/api"
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 	"mugiko/internal/modules/core/user/service"
@@ -14,7 +15,7 @@ import (
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, exception.StatusInvalidTokenFormat)
 		return
 	}
 
@@ -23,7 +24,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	token := api.ExtractBearerToken(authHeader)
 	fmt.Printf("RegisterUser: token=%s\n", token)
 	if token == "" {
-		api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
+		api.WriteError(w, commonexception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 		return
 	}
 
@@ -43,7 +44,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		//     return
 		// }
 
-		api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
+		api.WriteError(w, commonexception.MsgInvalidToken, exception.StatusInvalidToken)
 		return
 	}
 

@@ -299,6 +299,9 @@ CREATE INDEX IF NOT EXISTS idx_deck_words_created_at
     ON deck_words(created_at DESC);
 
 
+ALTER TABLE "public"."subtitles" REPLICA IDENTITY FULL;
+
+
 COMMIT;
 
 -- Sequin CDC: keep the publication in sync with the persistent-layer tables it
@@ -310,6 +313,9 @@ BEGIN
     CREATE PUBLICATION sequin_pub FOR TABLE novels, subtitles, ocr_results WITH (publish_via_partition_root = true);
 END
 $$;
+
+
+
 
 COMMIT;
 

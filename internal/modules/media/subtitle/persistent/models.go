@@ -1,10 +1,12 @@
 package persistent
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
+
+	"mugiko/internal/modules/media/subtitle/exception"
 )
 
 type ProviderKind string
@@ -79,10 +81,10 @@ type SubtitleUserState struct {
 }
 
 // ErrProviderNotFound error when provider not found
-var ErrProviderNotFound = fmt.Errorf("provider not found")
+var ErrProviderNotFound = errors.New(exception.MsgProviderNotFound)
 
 // ErrSubtitleNotFound error when subtitle not found
-var ErrSubtitleNotFound = fmt.Errorf("subtitle not found")
+var ErrSubtitleNotFound = errors.New(exception.MsgSubtitleNotFound)
 
 // ErrServiceNotFound error when service not found
-var ErrServiceNotFound = fmt.Errorf("service not found")
+var ErrServiceNotFound = errors.New(exception.MsgServiceNotFound)

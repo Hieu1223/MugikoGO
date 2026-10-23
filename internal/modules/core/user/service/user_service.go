@@ -75,7 +75,7 @@ func (s *UserService) GetUserDetail(userID uuid.UUID) (*dto.AuthData, *dto.UserP
 func (s *UserService) UpdateUserRole(userID uuid.UUID, role dto.Role) error {
 	// Validate role
 	if role != dto.RoleAnonymous && role != dto.RoleUser && role != dto.RoleAdmin {
-		return errors.New(exception.ErrInvalidRole)
+		return errors.New(exception.MsgInvalidRole)
 	}
 	return s.repo.UpdateUserRole(userID, role)
 }

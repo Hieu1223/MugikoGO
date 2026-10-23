@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"mugiko/internal/common/api"
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 )
@@ -13,7 +14,7 @@ func RequireRole(allowedRoles ...dto.Role) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			auth := GetAuthContext(r)
 			if auth == nil {
-				api.WriteError(w, exception.MsgUnauthorized, exception.StatusUnauthorized)
+				api.WriteError(w, commonexception.MsgUnauthorized, exception.StatusUnauthorized)
 				return
 			}
 
@@ -26,7 +27,7 @@ func RequireRole(allowedRoles ...dto.Role) func(http.Handler) http.Handler {
 			}
 
 			if !allowed {
-				api.WriteError(w, exception.MsgForbidden, exception.StatusForbidden)
+				api.WriteError(w, commonexception.MsgForbidden, exception.StatusForbidden)
 				return
 			}
 

@@ -57,7 +57,8 @@ services:
       - REDIS_URL=redis://sequin_redis:6379
       - CONFIG_FILE_PATH=/config/playground.yml
     volumes:
-      - ./playground.yml:/config/playground.yml
+      - ./playground.yml:/config/playground.yml:ro
+      - ./sql/sequin:/config/sql:ro
     depends_on:
       sequin_redis:
         condition: service_started

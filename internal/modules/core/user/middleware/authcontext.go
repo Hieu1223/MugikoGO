@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"mugiko/internal/common/api"
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/dto"
 	"mugiko/internal/modules/core/user/exception"
 	"mugiko/internal/modules/core/user/persistent"
@@ -36,7 +37,7 @@ func AuthContext(next http.Handler) http.Handler {
 				repo := persistent.NewUserRepository()
 				auth, _ = repo.GetUserAuthByAuthID(dto.AuthTypeFirebase, firebaseToken)
 				if auth == nil || !auth.IsActive {
-					api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
+					api.WriteError(w, commonexception.MsgInvalidToken, exception.StatusInvalidToken)
 					return
 				}
 
@@ -45,7 +46,7 @@ func AuthContext(next http.Handler) http.Handler {
 				fmt.Printf("AuthContext: calling VerifyAdminToken with adminToken=%s\n", adminToken)
 				auth, _ = authService.VerifyAdminToken(adminToken)
 				if auth == nil {
-					api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
+					api.WriteError(w, commonexception.MsgInvalidToken, exception.StatusInvalidToken)
 					return
 				}
 
@@ -58,13 +59,13 @@ func AuthContext(next http.Handler) http.Handler {
 					return
 				}
 				if auth == nil {
-					api.WriteError(w, exception.MsgInvalidToken, exception.StatusInvalidToken)
+					api.WriteError(w, commonexception.MsgInvalidToken, exception.StatusInvalidToken)
 					return
 				}
 
 			default:
 				fmt.Printf("AuthContext: DEFAULT CASE - token doesn't match any prefix\n")
-				api.WriteError(w, exception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
+				api.WriteError(w, commonexception.MsgInvalidTokenFormat, exception.StatusInvalidTokenFormat)
 				return
 			}
 		} else {

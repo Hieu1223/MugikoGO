@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"mugiko/internal/common/api"
+	commonexception "mugiko/internal/common/exception"
 	"github.com/google/uuid"
 
 	"mugiko/internal/modules/core/user/middleware"
 	"mugiko/internal/modules/media/subtitle/dto"
+	"mugiko/internal/modules/media/subtitle/exception"
 	"mugiko/internal/modules/media/subtitle/service"
 )
 
@@ -33,7 +35,7 @@ func getUserID(r *http.Request) *uuid.UUID {
 
 func (h *SubtitleHandler) ListProviders(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -49,20 +51,20 @@ func (h *SubtitleHandler) ListProviders(w http.ResponseWriter, r *http.Request) 
 
 func (h *SubtitleHandler) CreateProvider(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	// Check admin role
 	userInfo, ok := middleware.GetUserInfo(r.Context())
 	if !ok || userInfo.Role != "admin" {
-		api.WriteError(w, "Admin required", http.StatusForbidden)
+		api.WriteError(w, commonexception.MsgAdminRequired, http.StatusForbidden)
 		return
 	}
 
 	var req dto.SubtitleProviderCreate
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, "Invalid request body", http.StatusBadRequest)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
@@ -79,19 +81,19 @@ func (h *SubtitleHandler) CreateProvider(w http.ResponseWriter, r *http.Request)
 
 func (h *SubtitleHandler) CreateSubtitle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	userID := getUserID(r)
 	if userID == nil {
-		api.WriteError(w, "Authentication required", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.SubtitleCreate
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, "Invalid request body", http.StatusBadRequest)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
@@ -108,13 +110,13 @@ func (h *SubtitleHandler) CreateSubtitle(w http.ResponseWriter, r *http.Request)
 
 func (h *SubtitleHandler) SearchSubtitles(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	videoURL := r.URL.Query().Get("video_url")
 	if videoURL == "" {
-		api.WriteError(w, "video_url query parameter required", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgVideoURLQueryParameterRequired, http.StatusBadRequest)
 		return
 	}
 
@@ -139,14 +141,14 @@ func (h *SubtitleHandler) SearchSubtitles(w http.ResponseWriter, r *http.Request
 
 func (h *SubtitleHandler) GetSubtitle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	subtitleIDStr := r.PathValue("subtitle_id")
 	subtitleID, err := uuid.Parse(subtitleIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid subtitle ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidSubtitleID, http.StatusBadRequest)
 		return
 	}
 
@@ -164,14 +166,14 @@ func (h *SubtitleHandler) GetSubtitle(w http.ResponseWriter, r *http.Request) {
 
 func (h *SubtitleHandler) GetSubtitleSegments(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	subtitleIDStr := r.PathValue("subtitle_id")
 	subtitleID, err := uuid.Parse(subtitleIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid subtitle ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidSubtitleID, http.StatusBadRequest)
 		return
 	}
 
@@ -196,13 +198,13 @@ func (h *SubtitleHandler) GetSubtitleSegments(w http.ResponseWriter, r *http.Req
 
 func (h *SubtitleHandler) GetUserSettings(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	userID := getUserID(r)
 	if userID == nil {
-		api.WriteError(w, "Authentication required", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -218,19 +220,19 @@ func (h *SubtitleHandler) GetUserSettings(w http.ResponseWriter, r *http.Request
 
 func (h *SubtitleHandler) UpdateUserSettings(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PUT" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	userID := getUserID(r)
 	if userID == nil {
-		api.WriteError(w, "Authentication required", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.UserSettingsUpdate
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, "Invalid request body", http.StatusBadRequest)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
@@ -246,20 +248,20 @@ func (h *SubtitleHandler) UpdateUserSettings(w http.ResponseWriter, r *http.Requ
 
 func (h *SubtitleHandler) GetSubtitleUserState(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	userID := getUserID(r)
 	if userID == nil {
-		api.WriteError(w, "Authentication required", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	subtitleIDStr := r.PathValue("subtitle_id")
 	subtitleID, err := uuid.Parse(subtitleIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid subtitle ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidSubtitleID, http.StatusBadRequest)
 		return
 	}
 
@@ -275,26 +277,26 @@ func (h *SubtitleHandler) GetSubtitleUserState(w http.ResponseWriter, r *http.Re
 
 func (h *SubtitleHandler) UpdateSubtitleUserState(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PUT" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	userID := getUserID(r)
 	if userID == nil {
-		api.WriteError(w, "Authentication required", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	subtitleIDStr := r.PathValue("subtitle_id")
 	subtitleID, err := uuid.Parse(subtitleIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid subtitle ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidSubtitleID, http.StatusBadRequest)
 		return
 	}
 
 	var req dto.SubtitleUserStateUpdate
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, "Invalid request body", http.StatusBadRequest)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
@@ -310,13 +312,13 @@ func (h *SubtitleHandler) UpdateSubtitleUserState(w http.ResponseWriter, r *http
 
 func (h *SubtitleHandler) GetUserHistory(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		api.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		api.WriteError(w, commonexception.MsgMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	userID := getUserID(r)
 	if userID == nil {
-		api.WriteError(w, "Authentication required", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 

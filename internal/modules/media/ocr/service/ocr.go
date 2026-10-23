@@ -9,10 +9,11 @@ import (
 	"github.com/google/uuid"
 
 	"mugiko/internal/modules/media/ocr/dto"
+	"mugiko/internal/modules/media/ocr/exception"
 	"mugiko/internal/modules/media/ocr/persistent"
 )
 
-var ErrInvalidImageURL = errors.New("image_url must be an absolute http or https URL")
+var ErrInvalidImageURL = errors.New(exception.MsgInvalidImageURL)
 
 type OCRService struct {
 	repo *persistent.OCRRepository

@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/middleware"
 	"mugiko/internal/modules/media/manga/dto"
+	"mugiko/internal/modules/media/manga/exception"
 	"mugiko/internal/modules/media/manga/service"
 
 	"github.com/google/uuid"
@@ -47,12 +49,12 @@ func parseQueryInt(r *http.Request, name string, defaultVal int) int {
 func (h *MangaHandler) ListProviders(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 	userID, err := uuid.Parse(user.UserID)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
@@ -72,13 +74,13 @@ func (h *MangaHandler) ListProviders(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) CreateProvider(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	var req dto.CreateProviderRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": commonexception.MsgInvalidRequestBody})
 		return
 	}
 
@@ -93,29 +95,29 @@ func (h *MangaHandler) CreateProvider(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) GetProvider(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 	userID, err := uuid.Parse(user.UserID)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	providerID, err := parseUUID(r, "provider_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid provider ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidProviderID})
 		return
 	}
 
 	provider, err := h.svc.GetProvider(providerID)
 	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": "provider not found"})
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": exception.MsgProviderNotFound})
 		return
 	}
 
 	if provider.OwnerID != userID && user.Role != "admin" {
-		writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": commonexception.MsgForbidden})
 		return
 	}
 
@@ -125,19 +127,19 @@ func (h *MangaHandler) GetProvider(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) UpdateProvider(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	providerID, err := parseUUID(r, "provider_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid provider ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidProviderID})
 		return
 	}
 
 	var req dto.UpdateProviderRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": commonexception.MsgInvalidRequestBody})
 		return
 	}
 
@@ -152,29 +154,29 @@ func (h *MangaHandler) UpdateProvider(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) DeleteProvider(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 	userID, err := uuid.Parse(user.UserID)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	providerID, err := parseUUID(r, "provider_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid provider ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidProviderID})
 		return
 	}
 
 	provider, err := h.svc.GetProvider(providerID)
 	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": "provider not found"})
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": exception.MsgProviderNotFound})
 		return
 	}
 
 	if provider.OwnerID != userID && user.Role != "admin" {
-		writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": commonexception.MsgForbidden})
 		return
 	}
 
@@ -205,12 +207,12 @@ func (h *MangaHandler) ListPublicProviders(w http.ResponseWriter, r *http.Reques
 func (h *MangaHandler) ListSubscribableProviders(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 	userID, err := uuid.Parse(user.UserID)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
@@ -226,13 +228,13 @@ func (h *MangaHandler) ListSubscribableProviders(w http.ResponseWriter, r *http.
 func (h *MangaHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	providerID, err := parseUUID(r, "provider_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid provider ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidProviderID})
 		return
 	}
 
@@ -246,13 +248,13 @@ func (h *MangaHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	providerID, err := parseUUID(r, "provider_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid provider ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidProviderID})
 		return
 	}
 
@@ -266,7 +268,7 @@ func (h *MangaHandler) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) ListSubscriptions(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
@@ -281,13 +283,13 @@ func (h *MangaHandler) ListSubscriptions(w http.ResponseWriter, r *http.Request)
 func (h *MangaHandler) CheckSubscription(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	providerID, err := parseUUID(r, "provider_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid provider ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidProviderID})
 		return
 	}
 
@@ -303,13 +305,13 @@ func (h *MangaHandler) CheckSubscription(w http.ResponseWriter, r *http.Request)
 func (h *MangaHandler) UpsertHistory(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	var req dto.UpsertHistoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": commonexception.MsgInvalidRequestBody})
 		return
 	}
 
@@ -323,7 +325,7 @@ func (h *MangaHandler) UpsertHistory(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
@@ -346,19 +348,19 @@ func (h *MangaHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) DeleteHistory(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	providerID, err := parseUUID(r, "provider_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid provider ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidProviderID})
 		return
 	}
 
 	mangaID := r.PathValue("manga_id")
 	if mangaID == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "missing manga_id"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgMissingMangaID})
 		return
 	}
 
@@ -373,7 +375,7 @@ func (h *MangaHandler) DeleteHistory(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) GetUserSettings(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
@@ -388,13 +390,13 @@ func (h *MangaHandler) GetUserSettings(w http.ResponseWriter, r *http.Request) {
 func (h *MangaHandler) UpdateUserSettings(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	var req dto.UpdateSettingsRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": commonexception.MsgInvalidRequestBody})
 		return
 	}
 

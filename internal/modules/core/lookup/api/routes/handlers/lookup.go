@@ -7,6 +7,7 @@ import (
 
 	"mugiko/internal/common/api"
 	"mugiko/internal/modules/core/lookup/dto"
+	"mugiko/internal/modules/core/lookup/exception"
 	"mugiko/internal/modules/core/lookup/service"
 )
 
@@ -21,7 +22,7 @@ func NewLookupHandler(lookupService *service.LookupService) *LookupHandler {
 func (h *LookupHandler) LookupWord(w http.ResponseWriter, r *http.Request) {
 	word := r.URL.Query().Get("word")
 	if word == "" {
-		api.WriteError(w, "Word parameter is required", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgWordParameterRequired, http.StatusBadRequest)
 		return
 	}
 
@@ -32,7 +33,7 @@ func (h *LookupHandler) LookupWord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if entry == nil {
-		api.WriteError(w, "Word not found", http.StatusNotFound)
+		api.WriteError(w, exception.MsgWordNotFound, http.StatusNotFound)
 		return
 	}
 
@@ -43,7 +44,7 @@ func (h *LookupHandler) LookupWord(w http.ResponseWriter, r *http.Request) {
 func (h *LookupHandler) PrefixSearch(w http.ResponseWriter, r *http.Request) {
 	prefix := r.URL.Query().Get("prefix")
 	if prefix == "" {
-		api.WriteError(w, "Prefix parameter is required", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgPrefixParameterRequired, http.StatusBadRequest)
 		return
 	}
 
@@ -72,12 +73,12 @@ func (h *LookupHandler) PrefixSearch(w http.ResponseWriter, r *http.Request) {
 func (h *LookupHandler) LookupKanji(w http.ResponseWriter, r *http.Request) {
 	kanji := r.URL.Query().Get("kanji")
 	if kanji == "" {
-		api.WriteError(w, "Kanji parameter is required", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgKanjiParameterRequired, http.StatusBadRequest)
 		return
 	}
 
 	if len([]rune(kanji)) != 1 {
-		api.WriteError(w, "Kanji must be a single character", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgKanjiMustBeSingleCharacter, http.StatusBadRequest)
 		return
 	}
 
@@ -88,7 +89,7 @@ func (h *LookupHandler) LookupKanji(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if entry == nil {
-		api.WriteError(w, "Kanji not found", http.StatusNotFound)
+		api.WriteError(w, exception.MsgKanjiNotFound, http.StatusNotFound)
 		return
 	}
 

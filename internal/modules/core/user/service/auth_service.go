@@ -26,7 +26,7 @@ func (s *AuthService) VerifyFirebaseToken(idToken string) (*FirebaseUserInfo, er
 	// In a real implementation, this would verify the Firebase ID token
 	// For now, we'll return a mock response for testing
 	// TODO: Implement actual Firebase token verification
-	return nil, errors.New("Firebase token verification not implemented")
+	return nil, errors.New(exception.MsgFirebaseVerificationNotImplemented)
 }
 
 func (s *AuthService) VerifyAdminToken(token string) (*dto.AuthData, error) {

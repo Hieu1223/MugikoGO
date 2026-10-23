@@ -1,27 +1,28 @@
 package service
 
 import (
-	"fmt"
+	"database/sql"
+	"errors"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 
-	"database/sql"
-
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/middleware"
 	"mugiko/internal/modules/media/webnovel/dto"
+	"mugiko/internal/modules/media/webnovel/exception"
 	"mugiko/internal/modules/media/webnovel/persistent"
 
 	"github.com/google/uuid"
 )
 
 var (
-	ErrUnauthorized    = fmt.Errorf("unauthorized")
-	ErrNotFound        = fmt.Errorf("not found")
-	ErrInvalidURL      = fmt.Errorf("invalid URL")
-	ErrNovelExists     = fmt.Errorf("novel already exists")
-	ErrSyncNotImpl     = fmt.Errorf("sync not implemented")
+	ErrUnauthorized = errors.New(commonexception.MsgUnauthorized)
+	ErrNotFound     = errors.New(exception.MsgNotFound)
+	ErrInvalidURL   = errors.New(exception.MsgInvalidURL)
+	ErrNovelExists  = errors.New(exception.MsgNovelExists)
+	ErrSyncNotImpl  = errors.New(exception.MsgSyncNotImplemented)
 )
 
 type NovelService struct {
@@ -245,7 +246,7 @@ func (s *NovelService) parseSyosetsuURL(rawURL string) (dto.SourceEnum, string, 
 	}
 
 	if !strings.Contains(u.Host, "syosetu.com") && !strings.Contains(u.Host, "ncode.syosetu.com") {
-		return "", "", fmt.Errorf("unsupported source")
+		return "", "", errors.New(exception.MsgUnsupportedSource)
 	}
 
 	// Extract ncode from path
@@ -253,7 +254,7 @@ func (s *NovelService) parseSyosetsuURL(rawURL string) (dto.SourceEnum, string, 
 	re := regexp.MustCompile(`/n([a-z0-9]+)/?`)
 	matches := re.FindStringSubmatch(u.Path)
 	if len(matches) < 2 {
-		return "", "", fmt.Errorf("could not extract ncode")
+		return "", "", errors.New(exception.MsgCouldNotExtractNcode)
 	}
 
 	return dto.SourceSyosetsu, "n" + matches[1], nil

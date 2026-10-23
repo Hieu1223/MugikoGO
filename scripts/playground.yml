@@ -1,0 +1,73 @@
+databases:
+  - name: mugiko
+    port: 5432
+    slot:
+      name: sequin_slot
+    ssl: false
+    ipv6: false
+    hostname: mugiko_postgres
+    password:
+      postgres
+    username: postgres
+    pool_size: 10
+    database: mugiko
+    use_local_tunnel: false
+    publication:
+      name: sequin_pub
+functions:
+  - file: "/config/sql/subtitle_enrich.sql"
+    name: add-provider
+    type: enrichment
+    description:
+  - code: |
+      def transform(action, record, changes, metadata) do
+        enrichment = metadata[:enrichment] || metadata["enrichment"] || %{}
+
+        %{
+          id: record["id"],
+          video_url: record["video_url"],
+          service: enrichment["service"] || enrichment[:service],
+          provider: enrichment["provider"] || enrichment[:provider]
+        }
+      end
+    name: keep-neccessary
+    type: transform
+    description:
+sinks:
+  - name: mugiko-subtitle-sink
+    status: active
+    filter: none
+    tables: []
+    source:
+      include_schemas:
+      exclude_schemas:
+      exclude_tables:
+      include_tables:
+        - public.subtitles
+    transform: keep-neccessary
+    destination:
+      port: 6379
+      type: redis_stream
+      host: sequin_redis
+      tls: false
+      database: 0
+      stream_key: subtitle_queue
+    actions:
+      - insert
+    batch_size: 50
+    database: mugiko
+    annotations: {}
+    enrichment: add-provider
+    timestamp_format: iso8601
+    message_grouping: true
+    max_retry_count:
+    load_shedding_policy: pause_on_full
+    active_backfills: []
+    routing: none
+
+account:
+  name: "mugiko"
+
+users:
+  - email: "minhhieunn2000@gmail.com"
+    password: "19720052"

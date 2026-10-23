@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
+	commonexception "mugiko/internal/common/exception"
 	"mugiko/internal/modules/core/user/middleware"
 	"mugiko/internal/modules/media/webnovel/dto"
+	"mugiko/internal/modules/media/webnovel/exception"
 	"mugiko/internal/modules/media/webnovel/service"
 
 	"github.com/google/uuid"
@@ -47,13 +49,13 @@ func parseQueryInt(r *http.Request, name string, defaultVal int) int {
 func (h *NovelHandler) AddNovel(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	var req dto.AddNovelRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": commonexception.MsgInvalidRequestBody})
 		return
 	}
 
@@ -68,7 +70,7 @@ func (h *NovelHandler) AddNovel(w http.ResponseWriter, r *http.Request) {
 func (h *NovelHandler) ListMyNovels(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
@@ -98,13 +100,13 @@ func (h *NovelHandler) ListAllNovels(w http.ResponseWriter, r *http.Request) {
 func (h *NovelHandler) GetNovel(w http.ResponseWriter, r *http.Request) {
 	novelID, err := parseUUID(r, "novel_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid novel ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidNovelID})
 		return
 	}
 
 	resp, err := h.svc.GetNovel(novelID)
 	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": "novel not found"})
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": exception.MsgNovelNotFound})
 		return
 	}
 	writeJSON(w, http.StatusOK, resp)
@@ -113,7 +115,7 @@ func (h *NovelHandler) GetNovel(w http.ResponseWriter, r *http.Request) {
 func (h *NovelHandler) PreviewNovel(w http.ResponseWriter, r *http.Request) {
 	var req dto.PreviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": commonexception.MsgInvalidRequestBody})
 		return
 	}
 
@@ -128,7 +130,7 @@ func (h *NovelHandler) PreviewNovel(w http.ResponseWriter, r *http.Request) {
 func (h *NovelHandler) SearchNovels(w http.ResponseWriter, r *http.Request) {
 	var req dto.SearchRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": commonexception.MsgInvalidRequestBody})
 		return
 	}
 
@@ -144,7 +146,7 @@ func (h *NovelHandler) SearchNovels(w http.ResponseWriter, r *http.Request) {
 func (h *NovelHandler) GetChapter(w http.ResponseWriter, r *http.Request) {
 	chapterID, err := parseUUID(r, "chapter_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid chapter ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidChapterID})
 		return
 	}
 
@@ -159,7 +161,7 @@ func (h *NovelHandler) GetChapter(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": "chapter not found"})
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": exception.MsgChapterNotFound})
 		return
 	}
 	writeJSON(w, http.StatusOK, resp)
@@ -169,19 +171,19 @@ func (h *NovelHandler) GetChapter(w http.ResponseWriter, r *http.Request) {
 func (h *NovelHandler) SyncNovel(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserInfo(r.Context())
 	if !ok || user == (middleware.UserInfo{}) {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": commonexception.MsgUnauthorized})
 		return
 	}
 
 	novelID, err := parseUUID(r, "novel_id")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid novel ID"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": exception.MsgInvalidNovelID})
 		return
 	}
 
 	var req dto.SyncRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": commonexception.MsgInvalidRequestBody})
 		return
 	}
 

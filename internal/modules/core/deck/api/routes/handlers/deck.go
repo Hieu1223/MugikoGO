@@ -6,9 +6,11 @@ import (
 	"strconv"
 
 	"mugiko/internal/common/api"
+	commonexception "mugiko/internal/common/exception"
 	"github.com/google/uuid"
 
 	"mugiko/internal/modules/core/deck/dto"
+	"mugiko/internal/modules/core/deck/exception"
 	"mugiko/internal/modules/core/deck/service"
 	"mugiko/internal/modules/core/user/middleware"
 )
@@ -25,24 +27,24 @@ func (h *DeckHandler) CreateDeck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userInfo, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	var req dto.DeckCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, "Invalid request body", http.StatusBadRequest)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
 	if req.Name == "" {
-		api.WriteError(w, "Deck name is required", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgDeckNameRequired, http.StatusBadRequest)
 		return
 	}
 
 	ownerID, err := uuid.Parse(userInfo.UserID)
 	if err != nil {
-		api.WriteError(w, "Invalid user ID", http.StatusInternalServerError)
+		api.WriteError(w, exception.MsgInvalidUserID, http.StatusInternalServerError)
 		return
 	}
 
@@ -61,7 +63,7 @@ func (h *DeckHandler) ListDecks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userInfo, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
@@ -80,7 +82,7 @@ func (h *DeckHandler) ListDecks(w http.ResponseWriter, r *http.Request) {
 
 	ownerID, err := uuid.Parse(userInfo.UserID)
 	if err != nil {
-		api.WriteError(w, "Invalid user ID", http.StatusInternalServerError)
+		api.WriteError(w, exception.MsgInvalidUserID, http.StatusInternalServerError)
 		return
 	}
 
@@ -98,14 +100,14 @@ func (h *DeckHandler) GetDeck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	deckIDStr := r.PathValue("id")
 	deckID, err := uuid.Parse(deckIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid deck ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidDeckID, http.StatusBadRequest)
 		return
 	}
 
@@ -115,7 +117,7 @@ func (h *DeckHandler) GetDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if deck == nil {
-		api.WriteError(w, "Deck not found", http.StatusNotFound)
+		api.WriteError(w, exception.MsgDeckNotFound, http.StatusNotFound)
 		return
 	}
 
@@ -129,25 +131,25 @@ func (h *DeckHandler) UpdateDeck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	deckIDStr := r.PathValue("id")
 	deckID, err := uuid.Parse(deckIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid deck ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidDeckID, http.StatusBadRequest)
 		return
 	}
 
 	var req dto.DeckUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, "Invalid request body", http.StatusBadRequest)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
 	if req.Name == "" {
-		api.WriteError(w, "Deck name is required", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgDeckNameRequired, http.StatusBadRequest)
 		return
 	}
 
@@ -157,7 +159,7 @@ func (h *DeckHandler) UpdateDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if deck == nil {
-		api.WriteError(w, "Deck not found", http.StatusNotFound)
+		api.WriteError(w, exception.MsgDeckNotFound, http.StatusNotFound)
 		return
 	}
 
@@ -171,14 +173,14 @@ func (h *DeckHandler) DeleteDeck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	deckIDStr := r.PathValue("id")
 	deckID, err := uuid.Parse(deckIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid deck ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidDeckID, http.StatusBadRequest)
 		return
 	}
 
@@ -189,7 +191,7 @@ func (h *DeckHandler) DeleteDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if deck == nil {
-		api.WriteError(w, "Deck not found", http.StatusNotFound)
+		api.WriteError(w, exception.MsgDeckNotFound, http.StatusNotFound)
 		return
 	}
 
@@ -207,25 +209,25 @@ func (h *DeckHandler) AddWord(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	deckIDStr := r.PathValue("deck_id")
 	deckID, err := uuid.Parse(deckIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid deck ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidDeckID, http.StatusBadRequest)
 		return
 	}
 
 	var req dto.DeckWordCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, "Invalid request body", http.StatusBadRequest)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
 	if req.Word == "" || req.Meaning == "" {
-		api.WriteError(w, "Word and meaning are required", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgWordAndMeaningRequired, http.StatusBadRequest)
 		return
 	}
 
@@ -246,14 +248,14 @@ func (h *DeckHandler) ListWords(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userInfo, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	deckIDStr := r.PathValue("deck_id")
 	deckID, err := uuid.Parse(deckIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid deck ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidDeckID, http.StatusBadRequest)
 		return
 	}
 
@@ -286,25 +288,25 @@ func (h *DeckHandler) UpdateWord(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	wordIDStr := r.PathValue("word_id")
 	wordID, err := uuid.Parse(wordIDStr)
 	if err != nil {
-		api.WriteError(w, "Invalid word ID", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgInvalidWordID, http.StatusBadRequest)
 		return
 	}
 
 	var req dto.DeckWordUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.WriteError(w, "Invalid request body", http.StatusBadRequest)
+		api.WriteError(w, commonexception.MsgInvalidRequestBody, http.StatusBadRequest)
 		return
 	}
 
 	if (req.Word != nil && *req.Word == "") || (req.Meaning != nil && *req.Meaning == "") {
-		api.WriteError(w, "Word and meaning cannot be empty", http.StatusBadRequest)
+		api.WriteError(w, exception.MsgWordAndMeaningCannotBeEmpty, http.StatusBadRequest)
 		return
 	}
 
@@ -314,7 +316,7 @@ func (h *DeckHandler) UpdateWord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if word == nil {
-		api.WriteError(w, "Word not found", http.StatusNotFound)
+		api.WriteError(w, exception.MsgWordNotFound, http.StatusNotFound)
 		return
 	}
 
@@ -326,7 +328,7 @@ func (h *DeckHandler) DeleteWord(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, ok := middleware.GetUserInfo(ctx)
 	if !ok {
-		api.WriteError(w, "Unauthorized", http.StatusUnauthorized)
+		api.WriteError(w, commonexception.MsgUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
